@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.1](https://github.com/ericksonlopezf/dotnet-mediator/compare/v1.0.0...v1.0.1) (2026-08-27)
+
+
+### 🐛 Bug Fixes
+
+* **benchmarks:** enable multi-targeting net8.0;net9.0;net10.0 for cross-TFM benchmarks ([c276c00](https://github.com/ericksonlopezf/dotnet-mediator/commit/c276c00d55b0539b500cb83d1ccd116b668d168f))
+
 ## [Unreleased]
 
 ---
