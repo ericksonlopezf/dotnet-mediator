@@ -2,7 +2,7 @@
 <html lang='en'>
 <head>
 <meta charset='utf-8' />
-<title>EricksonLopez.Mediator.Benchmarks.MediatorBenchmarks-20260906-063627</title>
+<title>EricksonLopez.Mediator.Benchmarks.MediatorBenchmarks-20260913-065524</title>
 
 <style type="text/css">
 	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
@@ -13,56 +13,56 @@
 </head>
 <body>
 <pre><code>
-BenchmarkDotNet v0.15.8, Linux Ubuntu 24.04.4 LTS (Noble Numbat)
+BenchmarkDotNet v0.15.8, Linux Ubuntu 24.04.5 LTS (Noble Numbat)
 AMD EPYC 7763 2.45GHz, 1 CPU, 4 logical and 2 physical cores
-.NET SDK 10.0.400
-  [Host]    : .NET 10.0.11 (10.0.11, 10.0.1126.37416), X64 RyuJIT x86-64-v3
-  .NET 10.0 : .NET 10.0.11 (10.0.11, 10.0.1126.37416), X64 RyuJIT x86-64-v3
-  .NET 8.0  : .NET 8.0.30 (8.0.30, 8.0.3026.36720), X64 RyuJIT x86-64-v3
-  .NET 9.0  : .NET 9.0.19 (9.0.19, 9.0.1926.36724), X64 RyuJIT x86-64-v3
-  ShortRun  : .NET 10.0.11 (10.0.11, 10.0.1126.37416), X64 RyuJIT x86-64-v3
+.NET SDK 10.0.401
+  [Host]    : .NET 10.0.12 (10.0.12, 10.0.1226.42308), X64 RyuJIT x86-64-v3
+  .NET 10.0 : .NET 10.0.12 (10.0.12, 10.0.1226.42308), X64 RyuJIT x86-64-v3
+  .NET 8.0  : .NET 8.0.31 (8.0.31, 8.0.3126.42015), X64 RyuJIT x86-64-v3
+  .NET 9.0  : .NET 9.0.20 (9.0.20, 9.0.2026.41315), X64 RyuJIT x86-64-v3
+  ShortRun  : .NET 10.0.12 (10.0.12, 10.0.1226.42308), X64 RyuJIT x86-64-v3
 </code></pre>
 <pre><code></code></pre>
 
 <table>
 <thead><tr><th>Method                    </th><th>Job</th><th>Runtime</th><th>IterationCount</th><th>LaunchCount</th><th>WarmupCount</th><th>Mean </th><th>Error</th><th>StdDev</th><th>Ratio</th><th>RatioSD</th><th>Gen0</th><th>Allocated</th><th>Alloc Ratio</th>
 </tr>
-</thead><tbody><tr><td>DirectCall</td><td>.NET 10.0</td><td>.NET 10.0</td><td>Default</td><td>Default</td><td>Default</td><td>0.6061 ns</td><td>0.0103 ns</td><td>0.0092 ns</td><td>0.99</td><td>0.02</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>SendCommand_NoBehaviors</td><td>.NET 10.0</td><td>.NET 10.0</td><td>Default</td><td>Default</td><td>Default</td><td>21.0539 ns</td><td>0.0680 ns</td><td>0.0636 ns</td><td>34.45</td><td>0.35</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>SendQuery_NoBehaviors</td><td>.NET 10.0</td><td>.NET 10.0</td><td>Default</td><td>Default</td><td>Default</td><td>15.7546 ns</td><td>0.0287 ns</td><td>0.0240 ns</td><td>25.78</td><td>0.25</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>SendCommand_OneBehavior</td><td>.NET 10.0</td><td>.NET 10.0</td><td>Default</td><td>Default</td><td>Default</td><td>47.0877 ns</td><td>0.0904 ns</td><td>0.0755 ns</td><td>77.05</td><td>0.75</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>SendCommand_FiveBehaviors</td><td>.NET 10.0</td><td>.NET 10.0</td><td>Default</td><td>Default</td><td>Default</td><td>163.2673 ns</td><td>0.4101 ns</td><td>0.3635 ns</td><td>267.15</td><td>2.64</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>PublishNotification_OneHandler</td><td>.NET 10.0</td><td>.NET 10.0</td><td>Default</td><td>Default</td><td>Default</td><td>37.6373 ns</td><td>0.0681 ns</td><td>0.0532 ns</td><td>61.58</td><td>0.60</td><td>0.0014</td><td>24 B</td><td>NA</td>
-</tr><tr><td>PublishNotification_FiveHandlers</td><td>.NET 10.0</td><td>.NET 10.0</td><td>Default</td><td>Default</td><td>Default</td><td>199.7266 ns</td><td>0.4718 ns</td><td>0.4183 ns</td><td>326.80</td><td>3.23</td><td>0.0072</td><td>120 B</td><td>NA</td>
-</tr><tr><td>PublishNotification_Parallel</td><td>.NET 10.0</td><td>.NET 10.0</td><td>Default</td><td>Default</td><td>Default</td><td>181.2069 ns</td><td>1.5812 ns</td><td>1.4791 ns</td><td>296.50</td><td>3.70</td><td>0.0114</td><td>192 B</td><td>NA</td>
-</tr><tr><td>NestedSend</td><td>.NET 10.0</td><td>.NET 10.0</td><td>Default</td><td>Default</td><td>Default</td><td>68.7805 ns</td><td>0.1849 ns</td><td>0.1544 ns</td><td>112.54</td><td>1.11</td><td>0.0014</td><td>24 B</td><td>NA</td>
-</tr><tr><td>DirectCall</td><td>.NET 8.0</td><td>.NET 8.0</td><td>Default</td><td>Default</td><td>Default</td><td>0.6112 ns</td><td>0.0074 ns</td><td>0.0062 ns</td><td>1.00</td><td>0.01</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>SendCommand_NoBehaviors</td><td>.NET 8.0</td><td>.NET 8.0</td><td>Default</td><td>Default</td><td>Default</td><td>27.0237 ns</td><td>0.0243 ns</td><td>0.0215 ns</td><td>44.22</td><td>0.43</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>SendQuery_NoBehaviors</td><td>.NET 8.0</td><td>.NET 8.0</td><td>Default</td><td>Default</td><td>Default</td><td>25.3520 ns</td><td>0.0555 ns</td><td>0.0464 ns</td><td>41.48</td><td>0.41</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>SendCommand_OneBehavior</td><td>.NET 8.0</td><td>.NET 8.0</td><td>Default</td><td>Default</td><td>Default</td><td>55.8241 ns</td><td>0.2491 ns</td><td>0.2080 ns</td><td>91.34</td><td>0.94</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>SendCommand_FiveBehaviors</td><td>.NET 8.0</td><td>.NET 8.0</td><td>Default</td><td>Default</td><td>Default</td><td>259.7655 ns</td><td>0.6673 ns</td><td>0.6242 ns</td><td>425.04</td><td>4.22</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>PublishNotification_OneHandler</td><td>.NET 8.0</td><td>.NET 8.0</td><td>Default</td><td>Default</td><td>Default</td><td>57.8397 ns</td><td>0.4263 ns</td><td>0.3988 ns</td><td>94.64</td><td>1.11</td><td>0.0014</td><td>24 B</td><td>NA</td>
-</tr><tr><td>PublishNotification_FiveHandlers</td><td>.NET 8.0</td><td>.NET 8.0</td><td>Default</td><td>Default</td><td>Default</td><td>221.1035 ns</td><td>1.2717 ns</td><td>1.1273 ns</td><td>361.78</td><td>3.92</td><td>0.0072</td><td>120 B</td><td>NA</td>
-</tr><tr><td>PublishNotification_Parallel</td><td>.NET 8.0</td><td>.NET 8.0</td><td>Default</td><td>Default</td><td>Default</td><td>208.1069 ns</td><td>1.3436 ns</td><td>1.1220 ns</td><td>340.52</td><td>3.74</td><td>0.0119</td><td>200 B</td><td>NA</td>
-</tr><tr><td>NestedSend</td><td>.NET 8.0</td><td>.NET 8.0</td><td>Default</td><td>Default</td><td>Default</td><td>90.9676 ns</td><td>0.2569 ns</td><td>0.2403 ns</td><td>148.85</td><td>1.49</td><td>0.0014</td><td>24 B</td><td>NA</td>
-</tr><tr><td>DirectCall</td><td>.NET 9.0</td><td>.NET 9.0</td><td>Default</td><td>Default</td><td>Default</td><td>0.3342 ns</td><td>0.0069 ns</td><td>0.0058 ns</td><td>0.55</td><td>0.01</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>SendCommand_NoBehaviors</td><td>.NET 9.0</td><td>.NET 9.0</td><td>Default</td><td>Default</td><td>Default</td><td>23.4424 ns</td><td>0.0653 ns</td><td>0.0611 ns</td><td>38.36</td><td>0.38</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>SendQuery_NoBehaviors</td><td>.NET 9.0</td><td>.NET 9.0</td><td>Default</td><td>Default</td><td>Default</td><td>18.2463 ns</td><td>0.0235 ns</td><td>0.0196 ns</td><td>29.86</td><td>0.29</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>SendCommand_OneBehavior</td><td>.NET 9.0</td><td>.NET 9.0</td><td>Default</td><td>Default</td><td>Default</td><td>45.8137 ns</td><td>0.1123 ns</td><td>0.0996 ns</td><td>74.96</td><td>0.74</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>SendCommand_FiveBehaviors</td><td>.NET 9.0</td><td>.NET 9.0</td><td>Default</td><td>Default</td><td>Default</td><td>225.9361 ns</td><td>0.3731 ns</td><td>0.3308 ns</td><td>369.69</td><td>3.61</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>PublishNotification_OneHandler</td><td>.NET 9.0</td><td>.NET 9.0</td><td>Default</td><td>Default</td><td>Default</td><td>56.0461 ns</td><td>0.2240 ns</td><td>0.1871 ns</td><td>91.71</td><td>0.93</td><td>0.0014</td><td>24 B</td><td>NA</td>
-</tr><tr><td>PublishNotification_FiveHandlers</td><td>.NET 9.0</td><td>.NET 9.0</td><td>Default</td><td>Default</td><td>Default</td><td>215.4402 ns</td><td>0.6418 ns</td><td>0.6003 ns</td><td>352.51</td><td>3.53</td><td>0.0072</td><td>120 B</td><td>NA</td>
-</tr><tr><td>PublishNotification_Parallel</td><td>.NET 9.0</td><td>.NET 9.0</td><td>Default</td><td>Default</td><td>Default</td><td>200.1954 ns</td><td>1.0995 ns</td><td>1.0284 ns</td><td>327.57</td><td>3.56</td><td>0.0114</td><td>192 B</td><td>NA</td>
-</tr><tr><td>NestedSend</td><td>.NET 9.0</td><td>.NET 9.0</td><td>Default</td><td>Default</td><td>Default</td><td>78.3878 ns</td><td>0.2898 ns</td><td>0.2569 ns</td><td>128.26</td><td>1.30</td><td>0.0014</td><td>24 B</td><td>NA</td>
-</tr><tr><td>DirectCall</td><td>ShortRun</td><td>.NET 10.0</td><td>3</td><td>1</td><td>3</td><td>0.6072 ns</td><td>0.1473 ns</td><td>0.0081 ns</td><td>0.99</td><td>0.01</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>SendCommand_NoBehaviors</td><td>ShortRun</td><td>.NET 10.0</td><td>3</td><td>1</td><td>3</td><td>21.3537 ns</td><td>0.5326 ns</td><td>0.0292 ns</td><td>34.94</td><td>0.34</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>SendQuery_NoBehaviors</td><td>ShortRun</td><td>.NET 10.0</td><td>3</td><td>1</td><td>3</td><td>16.1368 ns</td><td>1.9351 ns</td><td>0.1061 ns</td><td>26.40</td><td>0.29</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>SendCommand_OneBehavior</td><td>ShortRun</td><td>.NET 10.0</td><td>3</td><td>1</td><td>3</td><td>47.4314 ns</td><td>0.1918 ns</td><td>0.0105 ns</td><td>77.61</td><td>0.76</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>SendCommand_FiveBehaviors</td><td>ShortRun</td><td>.NET 10.0</td><td>3</td><td>1</td><td>3</td><td>162.9594 ns</td><td>7.0931 ns</td><td>0.3888 ns</td><td>266.64</td><td>2.65</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>PublishNotification_OneHandler</td><td>ShortRun</td><td>.NET 10.0</td><td>3</td><td>1</td><td>3</td><td>37.7727 ns</td><td>1.5257 ns</td><td>0.0836 ns</td><td>61.81</td><td>0.61</td><td>0.0014</td><td>24 B</td><td>NA</td>
-</tr><tr><td>PublishNotification_FiveHandlers</td><td>ShortRun</td><td>.NET 10.0</td><td>3</td><td>1</td><td>3</td><td>198.4963 ns</td><td>6.4914 ns</td><td>0.3558 ns</td><td>324.79</td><td>3.21</td><td>0.0072</td><td>120 B</td><td>NA</td>
-</tr><tr><td>PublishNotification_Parallel</td><td>ShortRun</td><td>.NET 10.0</td><td>3</td><td>1</td><td>3</td><td>181.6943 ns</td><td>26.2860 ns</td><td>1.4408 ns</td><td>297.30</td><td>3.50</td><td>0.0114</td><td>192 B</td><td>NA</td>
-</tr><tr><td>NestedSend</td><td>ShortRun</td><td>.NET 10.0</td><td>3</td><td>1</td><td>3</td><td>68.6444 ns</td><td>2.8250 ns</td><td>0.1548 ns</td><td>112.32</td><td>1.12</td><td>0.0014</td><td>24 B</td><td>NA</td>
+</thead><tbody><tr><td>DirectCall</td><td>.NET 10.0</td><td>.NET 10.0</td><td>Default</td><td>Default</td><td>Default</td><td>0.6067 ns</td><td>0.0092 ns</td><td>0.0077 ns</td><td>1.98</td><td>0.24</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>SendCommand_NoBehaviors</td><td>.NET 10.0</td><td>.NET 10.0</td><td>Default</td><td>Default</td><td>Default</td><td>21.6741 ns</td><td>0.0750 ns</td><td>0.0626 ns</td><td>70.85</td><td>8.37</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>SendQuery_NoBehaviors</td><td>.NET 10.0</td><td>.NET 10.0</td><td>Default</td><td>Default</td><td>Default</td><td>16.0288 ns</td><td>0.0280 ns</td><td>0.0248 ns</td><td>52.40</td><td>6.19</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>SendCommand_OneBehavior</td><td>.NET 10.0</td><td>.NET 10.0</td><td>Default</td><td>Default</td><td>Default</td><td>53.7074 ns</td><td>0.1752 ns</td><td>0.1553 ns</td><td>175.57</td><td>20.74</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>SendCommand_FiveBehaviors</td><td>.NET 10.0</td><td>.NET 10.0</td><td>Default</td><td>Default</td><td>Default</td><td>188.0161 ns</td><td>0.1737 ns</td><td>0.1450 ns</td><td>614.63</td><td>72.61</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>PublishNotification_OneHandler</td><td>.NET 10.0</td><td>.NET 10.0</td><td>Default</td><td>Default</td><td>Default</td><td>37.5814 ns</td><td>0.2560 ns</td><td>0.2270 ns</td><td>122.85</td><td>14.53</td><td>0.0014</td><td>24 B</td><td>NA</td>
+</tr><tr><td>PublishNotification_FiveHandlers</td><td>.NET 10.0</td><td>.NET 10.0</td><td>Default</td><td>Default</td><td>Default</td><td>198.6224 ns</td><td>1.6094 ns</td><td>1.5054 ns</td><td>649.30</td><td>76.83</td><td>0.0072</td><td>120 B</td><td>NA</td>
+</tr><tr><td>PublishNotification_Parallel</td><td>.NET 10.0</td><td>.NET 10.0</td><td>Default</td><td>Default</td><td>Default</td><td>188.4771 ns</td><td>1.4472 ns</td><td>1.3537 ns</td><td>616.13</td><td>72.89</td><td>0.0114</td><td>192 B</td><td>NA</td>
+</tr><tr><td>NestedSend</td><td>.NET 10.0</td><td>.NET 10.0</td><td>Default</td><td>Default</td><td>Default</td><td>69.9468 ns</td><td>0.1932 ns</td><td>0.1613 ns</td><td>228.66</td><td>27.02</td><td>0.0014</td><td>24 B</td><td>NA</td>
+</tr><tr><td>DirectCall</td><td>.NET 8.0</td><td>.NET 8.0</td><td>Default</td><td>Default</td><td>Default</td><td>0.3115 ns</td><td>0.0590 ns</td><td>0.0492 ns</td><td>1.02</td><td>0.20</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>SendCommand_NoBehaviors</td><td>.NET 8.0</td><td>.NET 8.0</td><td>Default</td><td>Default</td><td>Default</td><td>26.2453 ns</td><td>0.0410 ns</td><td>0.0363 ns</td><td>85.80</td><td>10.13</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>SendQuery_NoBehaviors</td><td>.NET 8.0</td><td>.NET 8.0</td><td>Default</td><td>Default</td><td>Default</td><td>25.8076 ns</td><td>0.0336 ns</td><td>0.0262 ns</td><td>84.37</td><td>9.97</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>SendCommand_OneBehavior</td><td>.NET 8.0</td><td>.NET 8.0</td><td>Default</td><td>Default</td><td>Default</td><td>55.7513 ns</td><td>0.0592 ns</td><td>0.0494 ns</td><td>182.25</td><td>21.53</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>SendCommand_FiveBehaviors</td><td>.NET 8.0</td><td>.NET 8.0</td><td>Default</td><td>Default</td><td>Default</td><td>261.9612 ns</td><td>1.1512 ns</td><td>1.0205 ns</td><td>856.35</td><td>101.20</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>PublishNotification_OneHandler</td><td>.NET 8.0</td><td>.NET 8.0</td><td>Default</td><td>Default</td><td>Default</td><td>58.5781 ns</td><td>0.0621 ns</td><td>0.0518 ns</td><td>191.49</td><td>22.62</td><td>0.0014</td><td>24 B</td><td>NA</td>
+</tr><tr><td>PublishNotification_FiveHandlers</td><td>.NET 8.0</td><td>.NET 8.0</td><td>Default</td><td>Default</td><td>Default</td><td>224.9574 ns</td><td>0.4922 ns</td><td>0.4604 ns</td><td>735.39</td><td>86.86</td><td>0.0072</td><td>120 B</td><td>NA</td>
+</tr><tr><td>PublishNotification_Parallel</td><td>.NET 8.0</td><td>.NET 8.0</td><td>Default</td><td>Default</td><td>Default</td><td>211.5244 ns</td><td>0.9037 ns</td><td>0.8453 ns</td><td>691.48</td><td>81.70</td><td>0.0119</td><td>200 B</td><td>NA</td>
+</tr><tr><td>NestedSend</td><td>.NET 8.0</td><td>.NET 8.0</td><td>Default</td><td>Default</td><td>Default</td><td>90.8799 ns</td><td>0.4615 ns</td><td>0.4317 ns</td><td>297.09</td><td>35.11</td><td>0.0014</td><td>24 B</td><td>NA</td>
+</tr><tr><td>DirectCall</td><td>.NET 9.0</td><td>.NET 9.0</td><td>Default</td><td>Default</td><td>Default</td><td>0.3299 ns</td><td>0.0048 ns</td><td>0.0042 ns</td><td>1.08</td><td>0.13</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>SendCommand_NoBehaviors</td><td>.NET 9.0</td><td>.NET 9.0</td><td>Default</td><td>Default</td><td>Default</td><td>23.4310 ns</td><td>0.0521 ns</td><td>0.0435 ns</td><td>76.60</td><td>9.05</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>SendQuery_NoBehaviors</td><td>.NET 9.0</td><td>.NET 9.0</td><td>Default</td><td>Default</td><td>Default</td><td>19.9581 ns</td><td>0.0163 ns</td><td>0.0145 ns</td><td>65.24</td><td>7.71</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>SendCommand_OneBehavior</td><td>.NET 9.0</td><td>.NET 9.0</td><td>Default</td><td>Default</td><td>Default</td><td>45.6103 ns</td><td>0.0608 ns</td><td>0.0539 ns</td><td>149.10</td><td>17.61</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>SendCommand_FiveBehaviors</td><td>.NET 9.0</td><td>.NET 9.0</td><td>Default</td><td>Default</td><td>Default</td><td>223.5688 ns</td><td>0.5824 ns</td><td>0.5162 ns</td><td>730.85</td><td>86.34</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>PublishNotification_OneHandler</td><td>.NET 9.0</td><td>.NET 9.0</td><td>Default</td><td>Default</td><td>Default</td><td>55.2021 ns</td><td>0.2886 ns</td><td>0.2699 ns</td><td>180.46</td><td>21.33</td><td>0.0014</td><td>24 B</td><td>NA</td>
+</tr><tr><td>PublishNotification_FiveHandlers</td><td>.NET 9.0</td><td>.NET 9.0</td><td>Default</td><td>Default</td><td>Default</td><td>220.5391 ns</td><td>0.8472 ns</td><td>0.7925 ns</td><td>720.94</td><td>85.18</td><td>0.0072</td><td>120 B</td><td>NA</td>
+</tr><tr><td>PublishNotification_Parallel</td><td>.NET 9.0</td><td>.NET 9.0</td><td>Default</td><td>Default</td><td>Default</td><td>200.5843 ns</td><td>1.3778 ns</td><td>1.2213 ns</td><td>655.71</td><td>77.55</td><td>0.0114</td><td>192 B</td><td>NA</td>
+</tr><tr><td>NestedSend</td><td>.NET 9.0</td><td>.NET 9.0</td><td>Default</td><td>Default</td><td>Default</td><td>79.9200 ns</td><td>0.1446 ns</td><td>0.1352 ns</td><td>261.26</td><td>30.86</td><td>0.0014</td><td>24 B</td><td>NA</td>
+</tr><tr><td>DirectCall</td><td>ShortRun</td><td>.NET 10.0</td><td>3</td><td>1</td><td>3</td><td>0.6030 ns</td><td>0.1455 ns</td><td>0.0080 ns</td><td>1.97</td><td>0.24</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>SendCommand_NoBehaviors</td><td>ShortRun</td><td>.NET 10.0</td><td>3</td><td>1</td><td>3</td><td>21.0641 ns</td><td>0.1868 ns</td><td>0.0102 ns</td><td>68.86</td><td>8.22</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>SendQuery_NoBehaviors</td><td>ShortRun</td><td>.NET 10.0</td><td>3</td><td>1</td><td>3</td><td>15.4844 ns</td><td>0.1111 ns</td><td>0.0061 ns</td><td>50.62</td><td>6.04</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>SendCommand_OneBehavior</td><td>ShortRun</td><td>.NET 10.0</td><td>3</td><td>1</td><td>3</td><td>47.8115 ns</td><td>0.3359 ns</td><td>0.0184 ns</td><td>156.30</td><td>18.65</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>SendCommand_FiveBehaviors</td><td>ShortRun</td><td>.NET 10.0</td><td>3</td><td>1</td><td>3</td><td>188.6092 ns</td><td>9.4296 ns</td><td>0.5169 ns</td><td>616.57</td><td>73.59</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>PublishNotification_OneHandler</td><td>ShortRun</td><td>.NET 10.0</td><td>3</td><td>1</td><td>3</td><td>37.0864 ns</td><td>2.1382 ns</td><td>0.1172 ns</td><td>121.24</td><td>14.47</td><td>0.0014</td><td>24 B</td><td>NA</td>
+</tr><tr><td>PublishNotification_FiveHandlers</td><td>ShortRun</td><td>.NET 10.0</td><td>3</td><td>1</td><td>3</td><td>198.0651 ns</td><td>24.2050 ns</td><td>1.3268 ns</td><td>647.48</td><td>77.35</td><td>0.0072</td><td>120 B</td><td>NA</td>
+</tr><tr><td>PublishNotification_Parallel</td><td>ShortRun</td><td>.NET 10.0</td><td>3</td><td>1</td><td>3</td><td>182.1086 ns</td><td>27.1003 ns</td><td>1.4855 ns</td><td>595.32</td><td>71.15</td><td>0.0114</td><td>192 B</td><td>NA</td>
+</tr><tr><td>NestedSend</td><td>ShortRun</td><td>.NET 10.0</td><td>3</td><td>1</td><td>3</td><td>74.2519 ns</td><td>34.9315 ns</td><td>1.9147 ns</td><td>242.73</td><td>29.43</td><td>0.0014</td><td>24 B</td><td>NA</td>
 </tr></tbody></table>
 </body>
 </html>
