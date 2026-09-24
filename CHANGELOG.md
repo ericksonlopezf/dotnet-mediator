@@ -14,6 +14,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### ✨ Features
 
+* enable seamless MediatR migration with compat primitives, caching behaviors, and scoped defaults ([247890f](https://github.com/ericksonlopezf/dotnet-mediator/commit/247890fbeda5fa8ca41eebe99e7f14e63aaa6586))
+
+## [2.0.0](https://github.com/ericksonlopezf/dotnet-mediator/compare/v1.0.0...v2.0.0) (2026-09-24)
+
+
+### ⚠ BREAKING CHANGES
+
+* enable seamless MediatR migration with compat primitives, caching behaviors, and scoped defaults
+
+### ✨ Features
+
 * enable seamless MediatR migration with compat primitives, caching behaviors, and scoped defaults ([6e70ce0](https://github.com/ericksonlopezf/dotnet-mediator/commit/6e70ce02295502cecb1171688947875bdc701881))
 
 ## [Unreleased]
