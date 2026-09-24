@@ -7,12 +7,13 @@ Fixes # (issue)
 - [ ] `EricksonLopez.Mediator`
 - [ ] `EricksonLopez.Mediator.Generator`
 - [ ] `EricksonLopez.Mediator.AspNetCore`
+- [ ] `EricksonLopez.Mediator.Caching`
+- [ ] `EricksonLopez.Mediator.FluentValidation`
 - [ ] `EricksonLopez.Mediator.OpenTelemetry`
 - [ ] `EricksonLopez.Mediator.Polly`
 - [ ] `EricksonLopez.Mediator.RateLimiting`
 - [ ] `EricksonLopez.Mediator.Result`
 - [ ] `EricksonLopez.Mediator.Testing`
-- [ ] `EricksonLopez.Mediator.Validation`
 
 ## Type of change
 - [ ] Bug fix (non-breaking change which fixes an issue)
@@ -21,12 +22,12 @@ Fixes # (issue)
 - [ ] Documentation update
 
 ## Checklist:
-- [ ] My code follows the style guidelines of this project
+- [ ] My code follows the style guidelines and architectural invariants of this project
 - [ ] I have performed a self-review of my own code
-- [ ] I have commented my code, particularly in hard-to-understand areas
-- [ ] I have made corresponding changes to the documentation
-- [ ] My changes generate no new warnings
-- [ ] I have added tests that prove my fix is effective or that my feature works
-- [ ] New and existing unit tests pass locally with my changes
-- [ ] I have run the benchmarks (`EricksonLopez.Mediator.Benchmarks`) and there are no performance regressions
-- [ ] Any dependent changes have been merged and published in downstream modules
+- [ ] Public members in `src/` have complete XML documentation (CS1591 compliance)
+- [ ] Repository compliance verified with zero violations (`./scripts/verify-compliance.ps1`)
+- [ ] New and existing unit and integration tests pass locally (`dotnet test EricksonLopez.Mediator.slnx`)
+- [ ] Native AOT smoke test compiles and executes with zero trimming warnings (`tests/EricksonLopez.Mediator.AotSmokeTest`)
+- [ ] Mutation testing score satisfies quality gate thresholds (Stryker break ≥ 95%, low ≥ 98%)
+- [ ] Benchmark regression gate verified with zero heap allocations on hot path (0 B allocated) and ≤ 5% latency regression
+- [ ] I have made corresponding changes to the documentation in `docs/` and `README.md`

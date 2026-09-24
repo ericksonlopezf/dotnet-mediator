@@ -1,5 +1,11 @@
 # ADR-003: ICommand<T> and IQuery<T> Separation (CQRS Semantic Enforcement)
 
+## Status
+Accepted
+
+## Date
+2026-09-04
+
 **Status**: Accepted
 
 ### Context

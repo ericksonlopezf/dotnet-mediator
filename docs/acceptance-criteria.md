@@ -13,7 +13,7 @@
 - **Verification:** Unit and contract tests asserting `MediatorContractExtensions.AssertZeroAllocations` with zero allocated bytes.
 
 ### AC-02: Compile-Time Handler Exhaustiveness (Zero Runtime Reflection)
-- **Requirement:** Every `ICommand<TResponse>`, `IQuery<TResponse>`, and `IStreamQuery<TResponse>` declared in the solution must resolve to a valid compile-time handler. Missing handlers must fail compilation via `ELM001` or `ELM009`.
+- **Requirement:** Every `ICommand<TResponse>`, `IQuery<TResponse>`, and `IStreamRequest<TResponse>` declared in the solution must resolve to a valid compile-time handler. Missing handlers must fail compilation via `ELM001` or `ELM009`.
 - **Verification:** Roslyn generator tests asserting diagnostic emission for unhandled request types.
 
 ### AC-03: Single Handler Invariance for Commands and Queries
@@ -21,7 +21,7 @@
 - **Verification:** Roslyn generator duplicate handler tests.
 
 ### AC-04: Resilient Streaming Query Dispatch (IAsyncEnumerable)
-- **Requirement:** Streaming queries (`IStreamQuery<TResponse>`) must yield elements asynchronously without buffering the complete result stream in memory.
+- **Requirement:** Streaming requests (`IStreamRequest<TResponse>`) must yield elements asynchronously without buffering the complete result stream in memory.
 - **Verification:** Async streaming integration tests verifying immediate yield on element consumption.
 
 ---

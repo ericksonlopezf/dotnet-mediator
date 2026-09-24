@@ -4,7 +4,7 @@
 
 | Architectural Aspect | MediatR 12.x | EricksonLopez.Mediator |
 |---|---|---|
-| **Handler Discovery** | Runtime `services.AddMediatR(...)` assembly reflection scanning. | Compile-time incremental Roslyn generator (`AddMediator()`). |
+| **Handler Discovery** | Runtime `services.AddMediatR(...)` assembly reflection scanning. | Compile-time incremental Roslyn generator (`AddEricksonLopezMediator()`). |
 | **Pipeline Delegate** | `RequestHandlerDelegate<TResponse>` allocating heap closures. | Struct `INext<TResponse>` with zero heap allocation. |
 | **Return Types** | Mandatory `Task<TResponse>` causing task object allocations. | Native `ValueTask<TResponse>` eliminating allocations on synchronous paths. |
 | **Type Safety** | Generic `IRequest<T>` conflating reads and writes. | Strict separation: `ICommand<T>` vs `IQuery<T>`. |

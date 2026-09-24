@@ -1,5 +1,11 @@
 # ADR-011: REJECTED — Assembly Scanning for Handler Discovery
 
+## Status
+Rejected
+
+## Date
+2026-09-04
+
 **Status**: Accepted (Rejection)
 
 ### Context

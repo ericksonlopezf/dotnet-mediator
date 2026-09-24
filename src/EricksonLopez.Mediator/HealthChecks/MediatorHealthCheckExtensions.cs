@@ -16,7 +16,7 @@ public static class MediatorHealthCheckExtensions
     /// </summary>
     /// <param name="services">The service collection to register the health check into.</param>
     /// <returns>The same service collection instance for method chaining.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="services"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="services"/> is <see langword="null"/></exception>
     public static IServiceCollection AddMediatorHealthCheck(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);

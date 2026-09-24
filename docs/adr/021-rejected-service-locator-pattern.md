@@ -1,5 +1,11 @@
 # ADR-021: REJECTED — Service Locator Pattern
 
+## Status
+Rejected
+
+## Date
+2026-09-04
+
 **Status**: Accepted (Rejection)
 
 ### Context

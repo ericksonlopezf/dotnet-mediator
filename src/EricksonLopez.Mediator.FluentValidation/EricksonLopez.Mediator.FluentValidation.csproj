@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <IsPackable>true</IsPackable>
     <Description>FluentValidation pipeline behavior and extensions for EricksonLopez.Mediator.</Description>
-    <PackageTags>$(CommonPackageTags);fluentvalidation;validation;validation-behavior;input-validation</PackageTags>
+    <PackageTags>$(CommonPackageTags);fluentvalidation;validation;pipeline;input-validation</PackageTags>
     <!-- Native AOT: this package uses [RequiresUnreferencedCode] on assembly-scanning helpers.
          ValidationPipelineBehavior<TRequest,TResponse> itself is AOT-safe when validators
          are registered explicitly (without assembly scanning). -->

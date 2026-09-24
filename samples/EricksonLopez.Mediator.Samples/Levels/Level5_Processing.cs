@@ -8,10 +8,16 @@ using EricksonLopez.Mediator;
 namespace Sample.Levels.Level5_Processing;
 
 // --- 1. Heavy Async Processing Command ---
+
+/// <summary>Represents a command to process a batch of data items.</summary>
+/// <param name="BatchId">The unique identifier of the batch.</param>
+/// <param name="ItemCount">The total number of items to process.</param>
 public sealed record ProcessBatchDataCommand(string BatchId, int ItemCount) : ICommand<int>;
 
+/// <summary>Handles asynchronous processing for <see cref="ProcessBatchDataCommand"/>.</summary>
 public sealed class ProcessBatchDataCommandHandler : ICommandHandler<ProcessBatchDataCommand, int>
 {
+    /// <inheritdoc/>
     public async ValueTask<int> Handle(ProcessBatchDataCommand command, CancellationToken cancellationToken)
     {
         Console.WriteLine($"[Level 5 - Handler] Starting batch processing '{command.BatchId}' ({command.ItemCount} items)...");
@@ -22,11 +28,17 @@ public sealed class ProcessBatchDataCommandHandler : ICommandHandler<ProcessBatc
 }
 
 // --- 2. Notification with Concurrent Parallel Strategy ---
+
+/// <summary>Represents a notification event published when real-time inventory levels change.</summary>
+/// <param name="ProductId">The unique identifier of the product.</param>
+/// <param name="NewStock">The updated stock quantity.</param>
 [PublishStrategy(PublishStrategy.Parallel)]
 public sealed record RealTimeInventoryUpdatedEvent(string ProductId, int NewStock) : INotification;
 
+/// <summary>Handles search index updates in response to <see cref="RealTimeInventoryUpdatedEvent"/>.</summary>
 public sealed class InventoryIndexNotificationHandler : INotificationHandler<RealTimeInventoryUpdatedEvent>
 {
+    /// <inheritdoc/>
     public async ValueTask Handle(RealTimeInventoryUpdatedEvent notification, CancellationToken cancellationToken)
     {
         Console.WriteLine($"[Level 5 - Parallel Handler A] Updating search index for {notification.ProductId}...");
@@ -35,8 +47,10 @@ public sealed class InventoryIndexNotificationHandler : INotificationHandler<Rea
     }
 }
 
+/// <summary>Handles cache invalidation in response to <see cref="RealTimeInventoryUpdatedEvent"/>.</summary>
 public sealed class InventoryCacheNotificationHandler : INotificationHandler<RealTimeInventoryUpdatedEvent>
 {
+    /// <inheritdoc/>
     public async ValueTask Handle(RealTimeInventoryUpdatedEvent notification, CancellationToken cancellationToken)
     {
         Console.WriteLine($"[Level 5 - Parallel Handler B] Invalidating distributed cache for {notification.ProductId}...");
@@ -45,8 +59,10 @@ public sealed class InventoryCacheNotificationHandler : INotificationHandler<Rea
     }
 }
 
+/// <summary>Handles dashboard updates in response to <see cref="RealTimeInventoryUpdatedEvent"/>.</summary>
 public sealed class InventoryDashboardNotificationHandler : INotificationHandler<RealTimeInventoryUpdatedEvent>
 {
+    /// <inheritdoc/>
     public async ValueTask Handle(RealTimeInventoryUpdatedEvent notification, CancellationToken cancellationToken)
     {
         Console.WriteLine($"[Level 5 - Parallel Handler C] Notifying real-time monitoring dashboard...");
@@ -55,11 +71,12 @@ public sealed class InventoryDashboardNotificationHandler : INotificationHandler
     }
 }
 
-/// <summary>
-/// Level 5: Concurrent Processing and Publishing Strategies.
-/// </summary>
+/// <summary>Demonstrates concurrent processing and publishing strategies.</summary>
 public static class Demo
 {
+    /// <summary>Executes the Level 5 concurrent processing demonstration.</summary>
+    /// <param name="mediator">The mediator instance to use for dispatching.</param>
+    /// <returns>A task representing the asynchronous demonstration operation.</returns>
     public static async Task RunAsync(IMediator mediator)
     {
         Console.WriteLine("================================================================================");

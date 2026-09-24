@@ -51,8 +51,8 @@ namespace TestApp
         diTree.Should().NotBeNull();
         var diCode = diTree.ToString();
 
-        diCode.Should().Contain("services.AddSingleton<global::TestApp.SingletonCustomEventHandler>();");
-        diCode.Should().Contain("services.AddScoped<global::TestApp.ScopedCustomStreamHandler>();");
+        diCode.Should().Contain("services.TryAddSingleton<global::TestApp.SingletonCustomEventHandler>();");
+        diCode.Should().Contain("services.TryAddScoped<global::TestApp.ScopedCustomStreamHandler>();");
     }
 
     [Fact]
@@ -84,7 +84,7 @@ namespace TestApp
         var diCode = outComp.SyntaxTrees
             .First(t => t.FilePath.Contains("GeneratedMediatorExtensions.g.cs")).ToString();
 
-        diCode.Should().Contain("services.AddTransient<global::TestApp.Level1.Level2.NestedCmdHandler>();");
+        diCode.Should().Contain("services.TryAddTransient<global::TestApp.Level1.Level2.NestedCmdHandler>();");
     }
 
     [Fact]
@@ -246,8 +246,8 @@ namespace TestApp
         var diCode = outComp.SyntaxTrees
             .First(t => t.FilePath.Contains("GeneratedMediatorExtensions.g.cs")).ToString();
 
-        diCode.Should().Contain("services.AddScoped<global::TestApp.ScopedCmdHandler>();");
-        diCode.Should().Contain("services.AddTransient<global::TestApp.TransCmdHandler>();");
+        diCode.Should().Contain("services.TryAddScoped<global::TestApp.ScopedCmdHandler>();");
+        diCode.Should().Contain("services.TryAddTransient<global::TestApp.TransCmdHandler>();");
     }
 
     [Fact]
@@ -276,7 +276,7 @@ namespace TestApp
         var diCode = outComp.SyntaxTrees
             .First(t => t.FilePath.Contains("GeneratedMediatorExtensions.g.cs")).ToString();
 
-        int occurrences = diCode.Split(new[] { "services.AddTransient<global::TestApp.SimpleCmdHandler>();" }, StringSplitOptions.None).Length - 1;
+        int occurrences = diCode.Split(new[] { "services.TryAddTransient<global::TestApp.SimpleCmdHandler>();" }, StringSplitOptions.None).Length - 1;
         occurrences.Should().Be(1);
     }
 
@@ -341,7 +341,7 @@ namespace TestApp
         var diCode = outComp.SyntaxTrees
             .First(t => t.FilePath.Contains("GeneratedMediatorExtensions.g.cs")).ToString();
 
-        diCode.Should().Contain("services.AddTransient<global::TestApp.DescribedEventHandler>();");
+        diCode.Should().Contain("services.TryAddTransient<global::TestApp.DescribedEventHandler>();");
     }
 }
 

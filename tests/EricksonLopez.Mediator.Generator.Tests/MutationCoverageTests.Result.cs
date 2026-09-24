@@ -94,7 +94,7 @@ namespace TestApp
         var diCode = outComp.SyntaxTrees
             .First(t => t.FilePath.Contains("GeneratedMediatorExtensions.g.cs")).ToString();
 
-        Assert.Contains("services.AddSingleton<global::EricksonLopez.Mediator.Result.IResultFactory<global::EricksonLopez.Result.Result<int>>, ResultFactory0>();", diCode);
+        Assert.Contains("services.TryAddSingleton<global::EricksonLopez.Mediator.Result.IResultFactory<global::EricksonLopez.Result.Result<int>>, ResultFactory0>();", diCode);
     }
 
     [Fact]
@@ -144,8 +144,8 @@ namespace TestApp
 
         normalizedDiCode.Should().Contain(expectedFactory0);
         normalizedDiCode.Should().Contain(expectedFactory1);
-        Assert.Contains("services.AddSingleton<global::EricksonLopez.Mediator.Result.IResultFactory<global::EricksonLopez.Result.Result<int>>, ResultFactory0>();", diCode);
-        Assert.Contains("services.AddSingleton<global::EricksonLopez.Mediator.Result.IResultFactory<global::EricksonLopez.Result.Result<string>>, ResultFactory1>();", diCode);
+        Assert.Contains("services.TryAddSingleton<global::EricksonLopez.Mediator.Result.IResultFactory<global::EricksonLopez.Result.Result<int>>, ResultFactory0>();", diCode);
+        Assert.Contains("services.TryAddSingleton<global::EricksonLopez.Mediator.Result.IResultFactory<global::EricksonLopez.Result.Result<string>>, ResultFactory1>();", diCode);
     }
 
     [Fact]

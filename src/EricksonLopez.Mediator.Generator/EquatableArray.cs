@@ -15,6 +15,34 @@ namespace EricksonLopez.Mediator.Generator;
 /// <typeparam name="T">The type of elements in the array.</typeparam>
 public readonly struct EquatableArray<T> : IEquatable<EquatableArray<T>>, IReadOnlyList<T>
 {
+    private static readonly IEqualityComparer<T> DefaultItemComparer = GetDefaultComparer();
+
+    private static IEqualityComparer<T> GetDefaultComparer()
+    {
+        if (typeof(Microsoft.CodeAnalysis.ISymbol).IsAssignableFrom(typeof(T)))
+        {
+            return SymbolComparerWrapper.Instance;
+        }
+        return EqualityComparer<T>.Default;
+    }
+
+    private sealed class SymbolComparerWrapper : IEqualityComparer<T>
+    {
+        public static readonly SymbolComparerWrapper Instance = new();
+
+        public bool Equals(T? x, T? y)
+        {
+            return Microsoft.CodeAnalysis.SymbolEqualityComparer.Default.Equals(x as Microsoft.CodeAnalysis.ISymbol, y as Microsoft.CodeAnalysis.ISymbol);
+        }
+
+        public int GetHashCode(T obj)
+        {
+            return obj is Microsoft.CodeAnalysis.ISymbol sym
+                ? Microsoft.CodeAnalysis.SymbolEqualityComparer.Default.GetHashCode(sym)
+                : obj?.GetHashCode() ?? 0;
+        }
+    }
+
     private readonly T[]? _array;
 
     /// <summary>
@@ -52,7 +80,7 @@ public readonly struct EquatableArray<T> : IEquatable<EquatableArray<T>>, IReadO
 
         for (int i = 0; i < _array.Length; i++)
         {
-            if (!EqualityComparer<T>.Default.Equals(_array[i], other._array[i]))
+            if (!DefaultItemComparer.Equals(_array[i], other._array[i]))
                 return false;
         }
         return true;
@@ -74,7 +102,7 @@ public readonly struct EquatableArray<T> : IEquatable<EquatableArray<T>>, IReadO
             int hash = 17;
             foreach (var item in _array)
             {
-                hash = hash * 31 + (item == null ? 0 : item.GetHashCode());
+                hash = hash * 31 + (item == null ? 0 : DefaultItemComparer.GetHashCode(item));
             }
             return hash;
         }
@@ -109,9 +137,10 @@ public readonly struct EquatableArray<T> : IEquatable<EquatableArray<T>>, IReadO
     public List<T> ToList() => _array == null ? new List<T>() : new List<T>(_array);
 
     /// <summary>
-    /// Defines an implicit conversion from an array to an <see cref="EquatableArray{T}"/>.
+    /// Converts an array of type <typeparamref name="T"/> to an <see cref="EquatableArray{T}"/> instance.
     /// </summary>
     /// <param name="array">The array to convert.</param>
+    /// <returns>A new <see cref="EquatableArray{T}"/> instance wrapping the specified array.</returns>
     public static implicit operator EquatableArray<T>(T[] array) => new(array);
 
     /// <summary>

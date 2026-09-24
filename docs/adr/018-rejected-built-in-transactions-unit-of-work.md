@@ -1,5 +1,11 @@
 # ADR-018: REJECTED — Built-in Transactions / Unit of Work
 
+## Status
+Rejected
+
+## Date
+2026-09-04
+
 **Status**: Accepted (Rejection)
 
 ### Context

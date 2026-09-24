@@ -189,7 +189,7 @@ namespace TestApp
         var dispatcherCode = outComp.SyntaxTrees
             .First(t => t.FilePath.Contains("GeneratedMediator.g.cs")).ToString();
 
-        Assert.Contains("internal readonly struct AggEventNotificationNext : INext", dispatcherCode);
+        Assert.Contains("internal readonly struct TestApp_AggEventNotificationNext : INext", dispatcherCode);
         Assert.Contains("List<Exception> exceptions = null;", dispatcherCode);
         Assert.Contains("await _sp.GetRequiredService<global::TestApp.AggEventHandler1>().Handle(_n, _ct).ConfigureAwait(false);", dispatcherCode);
         Assert.Contains("await _sp.GetRequiredService<global::TestApp.AggEventHandler2>().Handle(_n, _ct).ConfigureAwait(false);", dispatcherCode);

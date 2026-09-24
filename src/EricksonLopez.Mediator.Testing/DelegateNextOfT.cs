@@ -16,10 +16,11 @@ public readonly struct DelegateNext<TResponse> : INext<TResponse>
     /// Initializes a new instance of the <see cref="DelegateNext{TResponse}"/> struct with an asynchronous callback delegate.
     /// </summary>
     /// <param name="continuation">The asynchronous delegate to invoke.</param>
-    /// <exception cref="ArgumentNullException"><paramref name="continuation"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="continuation"/> is <see langword="null"/></exception>
     public DelegateNext(Func<ValueTask<TResponse>> continuation)
     {
-        _continuation = continuation ?? throw new ArgumentNullException(nameof(continuation));
+        ArgumentNullException.ThrowIfNull(continuation);
+        _continuation = continuation;
     }
 
     /// <summary>

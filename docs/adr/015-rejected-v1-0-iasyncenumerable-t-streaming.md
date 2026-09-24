@@ -1,5 +1,11 @@
 # ADR-015: Experimental IAsyncEnumerable<T> Streaming via [Experimental("ELM_STREAMING")]
 
+## Status
+Superseded by [ADR-034](034-promotion-streaming-stable-direct-handler-dispatch.md)
+
+## Date
+2026-09-04
+
 **Status**: ~~Accepted (Implemented as Opt-in Experimental in v1.0)~~ **Superseded by [ADR-034](034-promotion-streaming-stable-direct-handler-dispatch.md)**
 
 > [!NOTE]

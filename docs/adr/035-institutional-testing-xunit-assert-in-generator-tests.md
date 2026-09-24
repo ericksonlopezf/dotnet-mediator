@@ -1,5 +1,11 @@
 # ADR-035: Institutional Testing Standard — Use of xUnit Assert in Source Generator Tests
 
+## Status
+Accepted
+
+## Date
+2026-08-26
+
 **Status**: Approved (Implemented in v1.0)
 
 **Date**: 2026-08-26

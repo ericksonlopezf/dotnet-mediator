@@ -11,13 +11,13 @@
       "!**/*.g.cs",
       "!**/*.AssemblyInfo.cs"
     ],
-    "concurrency": 1,
+    "concurrency": 2,
     "coverage-analysis": "perTest",
     "additional-timeout": 30000,
     "thresholds": {
       "high": 100,
-      "low": 95,
-      "break": 90
+      "low": 98,
+      "break": 95
     },
     "reporters": [
       "html",

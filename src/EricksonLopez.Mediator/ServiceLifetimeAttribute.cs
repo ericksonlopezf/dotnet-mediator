@@ -7,7 +7,16 @@ namespace EricksonLopez.Mediator;
 /// Specifies the service lifetime of the decorated handler within the dependency injection container.
 /// </summary>
 /// <remarks>
-/// When this attribute is omitted, handlers default to <see cref="HandlerLifetime.Transient"/>.
+/// <para>
+/// When this attribute is omitted, the source generator registers the handler with
+/// <see cref="HandlerLifetime.Transient"/> lifetime by default.
+/// </para>
+/// <para>
+/// This lifetime controls the handler registration only. The mediator interfaces
+/// (<c>IMediator</c>, <c>ISender</c>, and <c>IPublisher</c>) are registered separately as
+/// <c>Scoped</c> by default via <c>AddEricksonLopezMediator()</c> (ADR-037), which is
+/// independent of the handler registration lifetime configured here.
+/// </para>
 /// </remarks>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
 public sealed class ServiceLifetimeAttribute : Attribute

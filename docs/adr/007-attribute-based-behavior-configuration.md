@@ -1,5 +1,11 @@
 # ADR-007: Attribute-Based Behavior Configuration
 
+## Status
+Accepted
+
+## Date
+2026-09-04
+
 **Status**: Accepted
 
 ### Context

@@ -12,6 +12,7 @@ public static class Demo
     /// <summary>
     /// Executes the conceptual overview presentation.
     /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     public static Task RunAsync()
     {
         Console.WriteLine("================================================================================");

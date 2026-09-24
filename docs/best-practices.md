@@ -57,7 +57,7 @@ Cross-cutting concerns belong in IPipelineBehavior<TRequest, TResponse> — not 
 ```csharp
 [assembly: UseGlobalBehavior(typeof(TracingBehavior<,>), order: 0)]    // Outermost
 [assembly: UseGlobalBehavior(typeof(LoggingBehavior<,>), order: 1)]    // Second
-[assembly: UseGlobalBehavior(typeof(ValidationBehavior<,>), order: 2)] // Inner
+[assembly: UseGlobalBehavior(typeof(ValidationPipelineBehavior<,>), order: 2)] // Inner
 ```
 
 Order semantics: **lower = outermost** (first to receive, last to return).
@@ -189,7 +189,7 @@ fake.ShouldHaveReceived<PlaceOrderCommand>(c => c.CustomerId == "CUST-001");
 ### DO: Use DelegateNext<T> for isolated behavior unit tests
 
 ```csharp
-var behavior = new ValidationBehavior<CreateUserCommand, bool>();
+var behavior = new ValidationPipelineBehavior<CreateUserCommand, bool>();
 var next = new DelegateNext<bool>(true); // constant result stub
 var request = new CreateUserCommand("alice", "alice@example.com");
 
@@ -201,16 +201,24 @@ Assert.True(result);
 
 ## 9. StaticMediator
 
-### DO: Call Reset() between test cases when using StaticMediator
+### DO: Isolate test collections and call Reset() between test cases when using StaticMediator
+
+Because `StaticMediator` maintains process-wide static state, concurrent test runners executing parallel test classes can cause state collisions or race conditions. Always isolate test classes that call `StaticMediator.Reset()` using an xUnit test collection:
 
 ```csharp
-[Fact]
-public async Task Test_Serverless_Handler()
+[Collection("StaticMediator")]
+public sealed class MyStaticMediatorTests : IDisposable
 {
-    StaticMediator.Reset();
-    StaticMediator.RegisterCommandHandler(new MyHandler());
-    var result = await StaticMediator.SendCommand<MyCommand, MyResult>(new MyCommand());
-    Assert.NotNull(result);
+    public MyStaticMediatorTests() => StaticMediator.Reset();
+    public void Dispose() => StaticMediator.Reset();
+
+    [Fact]
+    public async Task Test_Serverless_Handler()
+    {
+        StaticMediator.RegisterCommandHandler(new MyHandler());
+        var result = await StaticMediator.SendCommand<MyCommand, MyResult>(new MyCommand());
+        Assert.NotNull(result);
+    }
 }
 ```
 
@@ -233,3 +241,28 @@ StaticMediator bypasses scoped lifetime, DbContext management, and IServiceProvi
 ### DON'T: Add any runtime reflection inside handlers or behaviors
 
 Any call to Type.GetType(), Assembly.GetTypes(), Activator.CreateInstance(), or MakeGenericMethod() inside a handler or behavior will fail under Native AOT trimming.
+
+---
+
+## 11. Recursive Dispatch and Stack Safety
+
+### DO: Yield execution (`await Task.Yield()`) during deep recursive dispatch
+
+Synchronous completions (such as pure `ValueTask<T>(result)`) executing in deeply recursive self-dispatching chains consume native call stack frames on the calling thread. If recursion depth exceeds the call stack budget (typically ~1,000 synchronous frames on x64), a fatal `StackOverflowException` occurs.
+
+Break synchronous execution chains by yielding to the asynchronous thread pool:
+
+```csharp
+public async ValueTask<int> Handle(RecursiveCommand cmd, CancellationToken ct)
+{
+    if (cmd.Remaining <= 0) return 0;
+
+    // Yield native stack frame to prevent stack exhaustion on deep recursion
+    await Task.Yield();
+    return await _mediator.Send(cmd with { Remaining = cmd.Remaining - 1 }, ct);
+}
+```
+
+### DON'T: Execute unbounded synchronous recursive loops inside handlers or FakeMediator setups
+
+Favor iterative loops or explicit asynchronous yielding rather than direct synchronous self-recursion.

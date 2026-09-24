@@ -34,32 +34,34 @@ dotnet test tests/EricksonLopez.Mediator.Tests/EricksonLopez.Mediator.Tests.cspr
 Verify that all packages compile and run cleanly under Native AOT:
 
 ```bash
-dotnet run -c Release --project tests/EricksonLopez.Mediator.AotTest/EricksonLopez.Mediator.AotTest.csproj
+dotnet run -c Release --project tests/EricksonLopez.Mediator.AotSmokeTest/EricksonLopez.Mediator.AotSmokeTest.csproj
 ```
 
 ### Mutation Testing
-Run Stryker.NET mutation testing locally:
+Run Stryker.NET mutation testing locally across packages:
 
 ```bash
-# Full ecosystem mutation run
+# Core package mutation test
 dotnet stryker --config-file stryker-config.json
 
-# Fast core-only mutation run
-dotnet stryker --config-file stryker-config-unit.json
+# Specific integration package (e.g. Caching or FluentValidation)
+dotnet stryker --config-file stryker-caching-config.json
+dotnet stryker --config-file stryker-fluentvalidation-config.json
 ```
 
 ### Benchmarks
 Performance and allocation metrics are critical invariants. If you modify core dispatching, struct continuations, or generator pipelines, run the benchmarks:
 
 ```bash
-dotnet run -c Release --project tests/EricksonLopez.Mediator.Benchmarks/EricksonLopez.Mediator.Benchmarks.csproj
+dotnet run -c Release --project benchmarks/EricksonLopez.Mediator.Benchmarks/EricksonLopez.Mediator.Benchmarks.csproj
 ```
 
 ### Pull Request Process
 1. Ensure your code compiles cleanly (`TreatWarningsAsErrors=true`) and all tests and Native AOT smoke tests pass.
-2. Update the `README.md` or the `docs/` folder with details of any changes to the public API.
-3. Submit a Pull Request targeting the `main` or `develop` branch.
-4. Complete the checklist provided in `.github/PULL_REQUEST_TEMPLATE.md`.
+2. Verify repository compliance by running `./scripts/verify-compliance.ps1`.
+3. Update the `README.md` or the `docs/` folder with details of any changes to the public API.
+4. Submit a Pull Request targeting the `main` or `develop` branch.
+5. Complete the checklist provided in `.github/PULL_REQUEST_TEMPLATE.md`.
 
 ## Branch Naming Convention
 We follow standard branch patterns:

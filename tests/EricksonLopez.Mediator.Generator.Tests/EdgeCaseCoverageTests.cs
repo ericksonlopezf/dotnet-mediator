@@ -40,7 +40,7 @@ namespace TestApp
         var generatedSyntaxTrees = outputCompilation.SyntaxTrees.ToList();
         var diCode = generatedSyntaxTrees.First(t => t.FilePath.Contains("GeneratedMediatorExtensions.g.cs")).ToString();
 
-        Assert.Contains("services.AddTransient<global::TestApp.MyCommandHandler>();", diCode);
+        Assert.Contains("services.TryAddTransient<global::TestApp.MyCommandHandler>();", diCode);
     }
 
     [Fact]
@@ -164,7 +164,7 @@ namespace TestApp.Nested
         var generatedSyntaxTrees = outputCompilation.SyntaxTrees.ToList();
         var diCode = generatedSyntaxTrees.First(t => t.FilePath.Contains("GeneratedMediatorExtensions.g.cs")).ToString();
 
-        Assert.Contains("services.AddTransient<global::TestApp.Nested.OuterClass.InnerHandler>();", diCode);
+        Assert.Contains("services.TryAddTransient<global::TestApp.Nested.OuterClass.InnerHandler>();", diCode);
     }
 
     [Fact]
@@ -198,11 +198,11 @@ namespace TestApp
         var generatedSyntaxTrees = outputCompilation.SyntaxTrees.ToList();
         var dispatcherCode = generatedSyntaxTrees.First(t => t.FilePath.Contains("GeneratedMediator.g.cs")).ToString();
 
-        Assert.Contains("internal readonly struct MyEventNotificationNext", dispatcherCode);
-        Assert.Contains("internal readonly struct MyEventBehavior0Next", dispatcherCode);
+        Assert.Contains("internal readonly struct TestApp_MyEventNotificationNext", dispatcherCode);
+        Assert.Contains("internal readonly struct TestApp_MyEventBehavior0Next", dispatcherCode);
         Assert.Contains("var tasks = new Task[1];", dispatcherCode);
         Assert.Contains("tasks[0] = _sp.GetRequiredService<global::TestApp.Handler1>().Handle(_n, _ct).AsTask();", dispatcherCode);
-        Assert.Contains("await Task.WhenAll(tasks).ConfigureAwait(false);", dispatcherCode);
+        Assert.Contains("await allTasks.ConfigureAwait(false);", dispatcherCode);
     }
 
     [Fact]

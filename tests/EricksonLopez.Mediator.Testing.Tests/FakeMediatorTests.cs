@@ -577,4 +577,33 @@ public class FakeMediatorTests
         var ex = new FakeAssertionException("Custom error message");
         ex.Message.Should().Be("Custom error message");
     }
+
+    [Fact]
+    public async Task FakeMediator_PreCancelledToken_ThrowsOperationCanceledException_OnAllDispatchMethods()
+    {
+        var fake = new FakeMediator();
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        await Assert.ThrowsAsync<OperationCanceledException>(async () => await fake.Send(new DummyCommand(), cts.Token));
+        await Assert.ThrowsAsync<OperationCanceledException>(async () => await fake.SendCommand<DummyCommand, string>(new DummyCommand(), cts.Token));
+        await Assert.ThrowsAsync<OperationCanceledException>(async () => await fake.Send(new DummyQuery(), cts.Token));
+        await Assert.ThrowsAsync<OperationCanceledException>(async () => await fake.SendQuery<DummyQuery, string>(new DummyQuery(), cts.Token));
+        await Assert.ThrowsAsync<OperationCanceledException>(async () => await fake.Publish(new DummyNotification(), cts.Token));
+        Assert.Throws<OperationCanceledException>(() => fake.CreateStream(new DummyStreamRequest(), cts.Token));
+    }
+
+    [Fact]
+    public async Task FakeMediator_NullArguments_ThrowsArgumentNullException_OnAllDispatchMethods()
+    {
+        var fake = new FakeMediator();
+
+        await Assert.ThrowsAsync<ArgumentNullException>(async () => await fake.Send<string>((ICommand<string>)null!));
+        await Assert.ThrowsAsync<ArgumentNullException>(async () => await fake.SendCommand<DummyCommand, string>(null!));
+        await Assert.ThrowsAsync<ArgumentNullException>(async () => await fake.Send<string>((IQuery<string>)null!));
+        await Assert.ThrowsAsync<ArgumentNullException>(async () => await fake.SendQuery<DummyQuery, string>(null!));
+        await Assert.ThrowsAsync<ArgumentNullException>(async () => await fake.Publish<DummyNotification>(null!));
+        Assert.Throws<ArgumentNullException>(() => fake.CreateStream<string>(null!));
+    }
 }
+

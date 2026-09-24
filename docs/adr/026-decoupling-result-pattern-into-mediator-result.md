@@ -1,5 +1,11 @@
 # ADR-026: Decoupling Result Pattern into EricksonLopez.Mediator.Result
 
+## Status
+Accepted
+
+## Date
+2026-09-04
+
 **Status**: Accepted (Implemented in v1.0)
 
 ### Context

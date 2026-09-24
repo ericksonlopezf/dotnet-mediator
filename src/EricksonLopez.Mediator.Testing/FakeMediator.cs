@@ -17,13 +17,13 @@ namespace EricksonLopez.Mediator.Testing;
 /// </remarks>
 public sealed class FakeMediator : IMediator
 {
-    private readonly Dictionary<Type, Func<object, CancellationToken, ValueTask<object>>> _commandHandlers = new();
-    private readonly Dictionary<Type, Func<object, CancellationToken, ValueTask<object>>> _queryHandlers = new();
-    private readonly Dictionary<Type, List<Func<object, CancellationToken, ValueTask>>> _notificationHandlers = new();
-    private readonly Dictionary<Type, Func<object, CancellationToken, object>> _streamHandlers = new();
+    private readonly ConcurrentDictionary<Type, Func<object, CancellationToken, ValueTask<object>>> _commandHandlers = new();
+    private readonly ConcurrentDictionary<Type, Func<object, CancellationToken, ValueTask<object>>> _queryHandlers = new();
+    private readonly ConcurrentDictionary<Type, ConcurrentQueue<Func<object, CancellationToken, ValueTask>>> _notificationHandlers = new();
+    private readonly ConcurrentDictionary<Type, Func<object, CancellationToken, object>> _streamHandlers = new();
 
-    private readonly ConcurrentBag<object> _receivedRequests = new();
-    private readonly ConcurrentBag<object> _receivedNotifications = new();
+    private readonly ConcurrentQueue<object> _receivedRequests = new();
+    private readonly ConcurrentQueue<object> _receivedNotifications = new();
 
     // ─── Setup ───────────────────────────────────────────────────────────────
 
@@ -92,12 +92,8 @@ public sealed class FakeMediator : IMediator
     public FakeMediator SetupNotification<TNotification>(Func<TNotification, CancellationToken, ValueTask> handler)
         where TNotification : INotification
     {
-        if (!_notificationHandlers.TryGetValue(typeof(TNotification), out var list))
-        {
-            list = new List<Func<object, CancellationToken, ValueTask>>();
-            _notificationHandlers[typeof(TNotification)] = list;
-        }
-        list.Add((n, ct) => handler((TNotification)n, ct));
+        var queue = _notificationHandlers.GetOrAdd(typeof(TNotification), _ => new ConcurrentQueue<Func<object, CancellationToken, ValueTask>>());
+        queue.Enqueue((n, ct) => handler((TNotification)n, ct));
         return this;
     }
 
@@ -118,9 +114,15 @@ public sealed class FakeMediator : IMediator
     // ─── Dispatch ────────────────────────────────────────────────────────────
 
     /// <inheritdoc/>
+    /// <exception cref="OperationCanceledException"><paramref name="cancellationToken"/> is already cancelled</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="command"/> is <see langword="null"/></exception>
+    /// <exception cref="InvalidOperationException">No handler is configured for the runtime type of <paramref name="command"/></exception>
     public ValueTask<TResponse> Send<TResponse>(ICommand<TResponse> command, CancellationToken cancellationToken = default)
     {
-        _receivedRequests.Add(command);
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(command);
+
+        _receivedRequests.Enqueue(command);
         var type = command.GetType();
         if (!_commandHandlers.TryGetValue(type, out var handler))
             throw new InvalidOperationException($"FakeMediator: no handler for command '{type.Name}'. Call SetupCommand<{type.Name}, TResponse>(...) in test setup.");
@@ -128,16 +130,28 @@ public sealed class FakeMediator : IMediator
     }
 
     /// <inheritdoc/>
+    /// <exception cref="OperationCanceledException"><paramref name="cancellationToken"/> is already cancelled</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="command"/> is <see langword="null"/></exception>
+    /// <exception cref="InvalidOperationException">No handler is configured for the runtime type of <paramref name="command"/></exception>
     public ValueTask<TResponse> SendCommand<TCommand, TResponse>(TCommand command, CancellationToken cancellationToken = default)
         where TCommand : ICommand<TResponse>
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(command);
+
         return Send((ICommand<TResponse>)command, cancellationToken);
     }
 
     /// <inheritdoc/>
+    /// <exception cref="OperationCanceledException"><paramref name="cancellationToken"/> is already cancelled</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="query"/> is <see langword="null"/></exception>
+    /// <exception cref="InvalidOperationException">No handler is configured for the runtime type of <paramref name="query"/></exception>
     public ValueTask<TResponse> Send<TResponse>(IQuery<TResponse> query, CancellationToken cancellationToken = default)
     {
-        _receivedRequests.Add(query);
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(query);
+
+        _receivedRequests.Enqueue(query);
         var type = query.GetType();
         if (!_queryHandlers.TryGetValue(type, out var handler))
             throw new InvalidOperationException($"FakeMediator: no handler for query '{type.Name}'. Call SetupQuery<{type.Name}, TResponse>(...) in test setup.");
@@ -145,27 +159,44 @@ public sealed class FakeMediator : IMediator
     }
 
     /// <inheritdoc/>
+    /// <exception cref="OperationCanceledException"><paramref name="cancellationToken"/> is already cancelled</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="query"/> is <see langword="null"/></exception>
+    /// <exception cref="InvalidOperationException">No handler is configured for the runtime type of <paramref name="query"/></exception>
     public ValueTask<TResponse> SendQuery<TQuery, TResponse>(TQuery query, CancellationToken cancellationToken = default)
         where TQuery : IQuery<TResponse>
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(query);
+
         return Send((IQuery<TResponse>)query, cancellationToken);
     }
 
     /// <inheritdoc/>
+    /// <exception cref="OperationCanceledException"><paramref name="cancellationToken"/> is already cancelled</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="notification"/> is <see langword="null"/></exception>
     public async ValueTask Publish<TNotification>(TNotification notification, CancellationToken cancellationToken = default)
         where TNotification : INotification
     {
-        _receivedNotifications.Add(notification!);
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(notification);
+
+        _receivedNotifications.Enqueue(notification);
         if (!_notificationHandlers.TryGetValue(typeof(TNotification), out var handlers))
             return;
         foreach (var handler in handlers)
-            await handler(notification!, cancellationToken).ConfigureAwait(false);
+            await handler(notification, cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
+    /// <exception cref="OperationCanceledException"><paramref name="cancellationToken"/> is already cancelled</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="request"/> is <see langword="null"/></exception>
+    /// <exception cref="InvalidOperationException">No handler is configured for the runtime type of <paramref name="request"/></exception>
     public IAsyncEnumerable<TResponse> CreateStream<TResponse>(IStreamRequest<TResponse> request, CancellationToken cancellationToken = default)
     {
-        _receivedRequests.Add(request!);
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(request);
+
+        _receivedRequests.Enqueue(request);
         var type = request.GetType();
         if (!_streamHandlers.TryGetValue(type, out var handler))
             throw new InvalidOperationException($"FakeMediator: no handler for stream request '{type.Name}'. Call SetupStream<{type.Name}, TResponse>(...) in test setup.");
@@ -212,7 +243,7 @@ public sealed class FakeMediator : IMediator
     /// Verifies that at least one message of type <typeparamref name="TRequest"/> was received.
     /// </summary>
     /// <typeparam name="TRequest">The type of request or notification expected.</typeparam>
-    /// <exception cref="FakeAssertionException">No matching message was received.</exception>
+    /// <exception cref="FakeAssertionException">No matching message was received</exception>
     public void ShouldHaveReceived<TRequest>()
     {
         var found = _receivedRequests.Any(r => r is TRequest) || _receivedNotifications.Any(r => r is TRequest);
@@ -225,7 +256,7 @@ public sealed class FakeMediator : IMediator
     /// </summary>
     /// <typeparam name="TRequest">The type of request or notification expected.</typeparam>
     /// <param name="predicate">The condition to evaluate on received messages.</param>
-    /// <exception cref="FakeAssertionException">No message matching the predicate was received.</exception>
+    /// <exception cref="FakeAssertionException">No message matching the predicate was received</exception>
     public void ShouldHaveReceived<TRequest>(Func<TRequest, bool> predicate)
     {
         var all = _receivedRequests.OfType<TRequest>().Concat(_receivedNotifications.OfType<TRequest>()).ToList();
@@ -239,7 +270,7 @@ public sealed class FakeMediator : IMediator
     /// Verifies that no messages of type <typeparamref name="TRequest"/> were received.
     /// </summary>
     /// <typeparam name="TRequest">The type of request or notification that should not have been received.</typeparam>
-    /// <exception cref="FakeAssertionException">At least one message of type <typeparamref name="TRequest"/> was received.</exception>
+    /// <exception cref="FakeAssertionException">At least one message of type <typeparamref name="TRequest"/> was received</exception>
     public void ShouldNotHaveReceived<TRequest>()
     {
         var found = _receivedRequests.Any(r => r is TRequest) || _receivedNotifications.Any(r => r is TRequest);

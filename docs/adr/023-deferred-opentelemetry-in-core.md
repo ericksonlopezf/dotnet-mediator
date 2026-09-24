@@ -1,5 +1,11 @@
 # ADR-023: DEFERRED — OpenTelemetry in Core
 
+## Status
+Accepted
+
+## Date
+2026-09-04
+
 **Status**: Deferred to EL.Mediator.OpenTelemetry package
 
 ### Context

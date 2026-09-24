@@ -1,5 +1,11 @@
 # ADR-006: No Runtime DI Scanning
 
+## Status
+Accepted
+
+## Date
+2026-09-04
+
 **Status**: Accepted
 
 ### Context

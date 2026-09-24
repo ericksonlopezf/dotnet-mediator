@@ -1,5 +1,11 @@
 # ADR-031: Institutional Testing Standard — Osherove Naming Pattern and Test-Scoped IDE1006 Suppression
 
+## Status
+Accepted
+
+## Date
+2026-08-26
+
 **Status**: Approved (Implemented in v1.0)
 
 **Date**: 2026-08-26

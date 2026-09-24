@@ -61,8 +61,8 @@ public class UserControllerTests
         var fakeMediator = new FakeMediator();
         var expectedId = Guid.NewGuid();
         
-        // Configure stub response
-        fakeMediator.SetupCommand<CreateUserCommand, Guid>(expectedId);
+        // Configure stub response using the Func<TCommand, TResponse> overload (sync)
+        fakeMediator.SetupCommand<CreateUserCommand, Guid>(_ => expectedId);
 
         var controller = new UserController(fakeMediator);
         var requestDto = new CreateUserRequestDto("alice", "alice@example.com");

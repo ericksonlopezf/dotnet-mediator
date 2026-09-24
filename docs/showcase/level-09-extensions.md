@@ -53,23 +53,37 @@ public sealed record SyncCustomerDataCommand(Guid CustomerId) : ICommand<bool>;
 Protect sensitive or resource-intensive handlers with concurrency and sliding window rate limiters:
 
 ```csharp
+using System.Threading.RateLimiting;
 using EricksonLopez.Mediator.RateLimiting;
 
-// Attach in-process rate limiter behavior
-[UseRateLimiter("payment-gateway")]
+// 1. Register RateLimiter and the mediator pipeline behavior
+builder.Services.AddSingleton<RateLimiter>(new ConcurrencyLimiter(new()
+{
+    PermitLimit = 10,
+    QueueLimit = 20,
+    QueueProcessingOrder = QueueProcessingOrder.OldestFirst
+}));
+builder.Services.AddMediatorRateLimiting();
+
+// Handlers are automatically protected via RateLimitingBehavior in the pipeline
 public sealed record ChargeCreditCardCommand(decimal Amount) : ICommand<PaymentReceipt>;
 ```
 
 ---
 
-## 4. FluentValidation Integration (`EricksonLopez.Mediator.Validation`)
+## 4. FluentValidation Integration (`EricksonLopez.Mediator.FluentValidation`)
 
 Seamlessly validate requests using FluentValidation and short-circuit the pipeline without exceptions:
 
 ```csharp
 using FluentValidation;
-using EricksonLopez.Mediator.Validation;
+using EricksonLopez.Mediator.FluentValidation;
 
+// 1. Register FluentValidation behavior and validators
+builder.Services.AddMediatorFluentValidation();
+builder.Services.AddMediatorFluentValidatorsFromAssembly(typeof(Program).Assembly);
+
+// 2. Define standard FluentValidation validator
 public sealed class CreateUserCommandValidator : AbstractValidator<CreateUserCommand>
 {
     public CreateUserCommandValidator()

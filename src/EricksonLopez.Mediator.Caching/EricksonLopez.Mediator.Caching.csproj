@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+    <AssemblyName>EricksonLopez.Mediator.Caching</AssemblyName>
+    <RootNamespace>EricksonLopez.Mediator.Caching</RootNamespace>
+    <PackageId>EricksonLopez.Mediator.Caching</PackageId>
+    <Description>Query caching and cache invalidation pipeline behaviors for EricksonLopez.Mediator. Supports stampede-protected multi-tier caching and 100% Native AOT compatibility.</Description>
+    <PackageTags>$(CommonPackageTags);caching;pipeline;query-cache;cache-invalidation;native-aot</PackageTags>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EricksonLopez.Mediator\EricksonLopez.Mediator.csproj" />
+    <ProjectReference Include="..\..\..\dotnet-caching\src\EricksonLopez.Caching\EricksonLopez.Caching.csproj" Condition="Exists('..\..\..\dotnet-caching\src\EricksonLopez.Caching\EricksonLopez.Caching.csproj')" />
+    <PackageReference Include="EricksonLopez.Caching" Condition="!Exists('..\..\..\dotnet-caching\src\EricksonLopez.Caching\EricksonLopez.Caching.csproj')" />
+    <PackageReference Include="EricksonLopez.Result" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="EricksonLopez.Mediator.Caching.Tests" />
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
+  </ItemGroup>
+
+</Project>

@@ -30,7 +30,7 @@ public class OpenTelemetryBehaviorTests
         using var meterListener = MeterCapture.Start(
             longCallback: (instrument, measurement, tags, state) =>
             {
-                if (instrument.Name == "mediator.requests.total" && instrument.Meter.Name == "EricksonLopez.Mediator" && instrument.Meter.Version == "1.0.0" && instrument.Unit == "requests" && instrument.Description == "Total number of requests dispatched via IMediator.Send.")
+                if (instrument.Name == "mediator.requests.total" && instrument.Meter.Name == "EricksonLopez.Mediator" && instrument.Meter.Version == "2.0.0" && instrument.Unit == "requests" && instrument.Description == "Total number of requests dispatched via IMediator.Send.")
                 {
                     requestCount += measurement;
                     tags.ToArray().Should().Contain(t => t.Key == "request.type" && (string)t.Value! == "DummyRequest");

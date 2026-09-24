@@ -16,7 +16,7 @@ Migrating from MediatR to `EricksonLopez.Mediator` brings:
 | `INotification` | `INotification` | Identical publish-subscribe semantics |
 | `INotificationHandler<T>` | `INotificationHandler<T>` | Sequential by default with parallel support |
 | `IPipelineBehavior<TReq, TRes>` | `IPipelineBehavior<TReq, TRes>` | Uses `struct INext<TRes>` instead of `RequestHandlerDelegate<TRes>` |
-| `services.AddMediatR(...)` | `services.AddMediator()` | Zero assembly scanning; compile-time generated |
+| `services.AddMediatR(...)` | `services.AddEricksonLopezMediator()` | Zero assembly scanning; compile-time generated |
 
 ## 3. Step-by-Step Migration
 
@@ -27,6 +27,7 @@ Migrating from MediatR to `EricksonLopez.Mediator` brings:
 
 <!-- Add -->
 <PackageReference Include="EricksonLopez.Mediator" />
+<PackageReference Include="EricksonLopez.Mediator.Generator" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 ```
 
 ### Step 2: Update Request & Handler Signatures
@@ -51,5 +52,5 @@ public sealed class GetOrderHandler : IQueryHandler<GetOrderQuery, Result<OrderD
 ### Step 3: Register in Dependency Injection
 ```csharp
 // Program.cs
-builder.Services.AddMediator();
+builder.Services.AddEricksonLopezMediator();
 ```

@@ -8,9 +8,12 @@
     <Nullable>enable</Nullable>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
+    <IsAotCompatible>false</IsAotCompatible>
+    <IsTrimmable>false</IsTrimmable>
+    <EnableTrimAnalyzer>false</EnableTrimAnalyzer>
     <IsPackable>true</IsPackable>
     <Description>Source generator for EricksonLopez.Mediator.</Description>
-    <PackageTags>$(CommonPackageTags);source-generator;roslyn;incremental-generator;code-generation;roslyn-analyzer;compile-time</PackageTags>
+    <PackageTags>$(CommonPackageTags);source-generator;roslyn;incremental-generator;code-generation;analyzer;compile-time</PackageTags>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <IncludeSymbols>false</IncludeSymbols>
     <NoWarn>$(NoWarn);NU5128;NU5100</NoWarn>

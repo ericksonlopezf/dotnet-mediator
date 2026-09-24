@@ -35,8 +35,10 @@ graph TD
     OTel["EricksonLopez.Mediator.OpenTelemetry (Tracing & Metrics)"] --> Core
     Polly["EricksonLopez.Mediator.Polly (Resilience Behaviors)"] --> Core
     RateLimit["EricksonLopez.Mediator.RateLimiting (Rate Limiting)"] --> Core
+    Caching["EricksonLopez.Mediator.Caching (Response Caching)"] --> Core
+    Caching --> ResultPkg
     Testing["EricksonLopez.Mediator.Testing (FakeMediator Test Double)"] --> Core
-    Validation["EricksonLopez.Mediator.Validation (FluentValidation)"] --> Core
+    Validation["EricksonLopez.Mediator.FluentValidation (FluentValidation)"] --> Core
     Validation --> ResultPkg
 ```
 
@@ -46,12 +48,12 @@ graph TD
 | `EricksonLopez.Mediator.Generator` | Incremental Roslyn Source Generator weaving the dispatcher, DI extensions, and diagnostics (`ELM001`–`ELM011`) | Roslyn Analyzer only (development dependency) | N/A |
 | `EricksonLopez.Mediator.AspNetCore` | Minimal API endpoint mapping extensions (`MapCommand`, `MapQuery`) | `EricksonLopez.Mediator`, `Microsoft.AspNetCore.App` | ⚠️ Requires AOT config (`[RequiresUnreferencedCode]` on public methods) |
 | `EricksonLopez.Mediator.OpenTelemetry` | Distributed tracing (`ActivitySource`) and performance metrics (`Meter`) | `EricksonLopez.Mediator`, `OpenTelemetry.Api` | ✅ 100% (type name caching via closed generic static fields — ADR-030) |
-| `EricksonLopez.Mediator.Polly` | Polly v8 resilience policies (retry, circuit breaker, timeout) pipeline behavior | `EricksonLopez.Mediator`, `Polly.Core` | ⚠️ Generally compatible; attribute metadata must be preserved under aggressive trimming |
+| `EricksonLopez.Mediator.Polly` | ⚠️ **DEPRECATED (ADR-036)** — Polly v8 resilience policies pipeline behavior (migrate to `EricksonLopez.Resilience.Mediator`) | `EricksonLopez.Mediator`, `Polly.Core` | ⚠️ Generally compatible; attribute metadata must be preserved under aggressive trimming |
 | `EricksonLopez.Mediator.RateLimiting` | High-throughput rate limiting pipeline behavior | `EricksonLopez.Mediator`, `System.Threading.RateLimiting` | ✅ 100% |
+| `EricksonLopez.Mediator.Caching` | High-performance response caching pipeline behavior with stampede protection (ADR-038) | `EricksonLopez.Mediator`, `EricksonLopez.Caching`, `EricksonLopez.Result` | ✅ 100% |
 | `EricksonLopez.Mediator.Result` | Type-safe failure result factory (`IResultFactory<TResponse>`) for pipeline short-circuiting | `EricksonLopez.Mediator`, `EricksonLopez.Result` | ✅ 100% |
 | `EricksonLopez.Mediator.Testing` | In-memory `FakeMediator` and `DelegateNext` test doubles for unit testing | `EricksonLopez.Mediator` | Test-only |
-| `EricksonLopez.Mediator.FluentValidation` | **Recommended** FluentValidation pipeline integration (`ValidationPipelineBehavior<T,R>`, `AddMediatorFluentValidation()`) | `EricksonLopez.Mediator`, `EricksonLopez.Mediator.Result`, `EricksonLopez.Result.FluentValidation` | ⚠️ Behavior itself is AOT-safe; assembly scanning extension uses `[RequiresUnreferencedCode]` |
-| `EricksonLopez.Mediator.Validation` | ⚠️ **DEPRECATED (ADR-033)** — archived in v2.0. Use `EricksonLopez.Mediator.FluentValidation` instead. | `EricksonLopez.Mediator`, `EricksonLopez.Mediator.Result`, `EricksonLopez.Result.FluentValidation` | ❌ Not AOT compatible (`[RequiresUnreferencedCode]` on assembly scanning) |
+| `EricksonLopez.Mediator.FluentValidation` | FluentValidation pipeline integration (`ValidationPipelineBehavior<T,R>`, `AddMediatorFluentValidation()`) | `EricksonLopez.Mediator`, `EricksonLopez.Mediator.Result`, `EricksonLopez.Result.FluentValidation` | ⚠️ Behavior itself is AOT-safe; assembly scanning extension uses `[RequiresUnreferencedCode]` |
 
 ---
 

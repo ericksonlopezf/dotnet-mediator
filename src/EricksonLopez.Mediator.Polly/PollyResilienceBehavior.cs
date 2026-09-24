@@ -13,6 +13,11 @@ namespace EricksonLopez.Mediator.Polly;
 /// </summary>
 /// <remarks>
 /// <para>
+/// <strong>Deprecation Notice:</strong> This behavior is deprecated in favor of <c>EricksonLopez.Resilience.Mediator</c>
+/// from the <c>EricksonLopez.Resilience</c> package ecosystem, which adheres to Clean Architecture by decoupling application
+/// handlers from direct Polly dependencies.
+/// </para>
+/// <para>
 /// If <typeparamref name="TRequest"/> is decorated with <see cref="UseResiliencePipelineAttribute"/>,
 /// this behavior resolves the named resilience pipeline from <see cref="ResiliencePipelineProvider{TKey}"/> and
 /// wraps handler execution with the configured Polly strategy (retry, circuit breaker, timeout, etc.).

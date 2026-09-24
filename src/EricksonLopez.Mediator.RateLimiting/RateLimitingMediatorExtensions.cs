@@ -15,7 +15,7 @@ public static class RateLimitingMediatorExtensions
     /// </summary>
     /// <param name="services">The service collection to register the behavior into.</param>
     /// <returns>The same service collection instance for method chaining.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="services"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="services"/> is <see langword="null"/></exception>
     public static IServiceCollection AddMediatorRateLimiting(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);

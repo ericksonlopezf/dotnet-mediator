@@ -15,10 +15,12 @@
     <Project Path="src/EricksonLopez.Mediator.FluentValidation/EricksonLopez.Mediator.FluentValidation.csproj" />
     <Project Path="src/EricksonLopez.Mediator.AspNetCore/EricksonLopez.Mediator.AspNetCore.csproj" />
     <Project Path="src/EricksonLopez.Mediator.RateLimiting/EricksonLopez.Mediator.RateLimiting.csproj" />
+    <Project Path="src/EricksonLopez.Mediator.Caching/EricksonLopez.Mediator.Caching.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/EricksonLopez.Mediator.AotSmokeTest/EricksonLopez.Mediator.AotSmokeTest.csproj" />
     <Project Path="tests/EricksonLopez.Mediator.AspNetCore.Tests/EricksonLopez.Mediator.AspNetCore.Tests.csproj" />
+    <Project Path="tests/EricksonLopez.Mediator.Caching.Tests/EricksonLopez.Mediator.Caching.Tests.csproj" />
     <Project Path="tests/EricksonLopez.Mediator.FluentValidation.Tests/EricksonLopez.Mediator.FluentValidation.Tests.csproj" />
     <Project Path="tests/EricksonLopez.Mediator.Generator.Tests/EricksonLopez.Mediator.Generator.Tests.csproj" />
     <Project Path="tests/EricksonLopez.Mediator.IntegrationTests/EricksonLopez.Mediator.IntegrationTests.csproj" />

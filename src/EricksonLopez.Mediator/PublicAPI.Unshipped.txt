@@ -100,3 +100,21 @@ EricksonLopez.Mediator.HealthChecks.MediatorHealthCheck.CheckHealthAsync(Microso
 EricksonLopez.Mediator.HealthChecks.MediatorHealthCheck.MediatorHealthCheck(EricksonLopez.Mediator.ISender? sender = null) -> void
 EricksonLopez.Mediator.MediatorHealthCheckExtensions
 EricksonLopez.Mediator.MediatorHealthCheckExtensions.AddMediatorHealthCheck(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+EricksonLopez.Mediator.IRequest
+EricksonLopez.Mediator.IRequest<TResponse>
+EricksonLopez.Mediator.IRequestHandler<in TRequest> where TRequest : EricksonLopez.Mediator.IRequest<EricksonLopez.Mediator.Unit>
+EricksonLopez.Mediator.IRequestHandler<in TRequest, TResponse>
+EricksonLopez.Mediator.IRequestHandler<in TRequest, TResponse>.Handle(TRequest request, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<TResponse>
+EricksonLopez.Mediator.Unit
+EricksonLopez.Mediator.Unit.CompareTo(EricksonLopez.Mediator.Unit other) -> int
+EricksonLopez.Mediator.Unit.Equals(EricksonLopez.Mediator.Unit other) -> bool
+EricksonLopez.Mediator.Unit.Equals(object? obj) -> bool
+EricksonLopez.Mediator.Unit.GetHashCode() -> int
+EricksonLopez.Mediator.Unit.ToString() -> string!
+static EricksonLopez.Mediator.Unit.Value.get -> ref readonly EricksonLopez.Mediator.Unit
+static EricksonLopez.Mediator.Unit.operator !=(EricksonLopez.Mediator.Unit first, EricksonLopez.Mediator.Unit second) -> bool
+static EricksonLopez.Mediator.Unit.operator <(EricksonLopez.Mediator.Unit left, EricksonLopez.Mediator.Unit right) -> bool
+static EricksonLopez.Mediator.Unit.operator <=(EricksonLopez.Mediator.Unit left, EricksonLopez.Mediator.Unit right) -> bool
+static EricksonLopez.Mediator.Unit.operator ==(EricksonLopez.Mediator.Unit first, EricksonLopez.Mediator.Unit second) -> bool
+static EricksonLopez.Mediator.Unit.operator >(EricksonLopez.Mediator.Unit left, EricksonLopez.Mediator.Unit right) -> bool
+static EricksonLopez.Mediator.Unit.operator >=(EricksonLopez.Mediator.Unit left, EricksonLopez.Mediator.Unit right) -> bool

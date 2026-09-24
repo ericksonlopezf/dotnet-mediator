@@ -1,5 +1,11 @@
 # ADR-024: Multi-Target net8.0, net9.0 and net10.0
 
+## Status
+Accepted
+
+## Date
+2026-09-04
+
 **Status**: Accepted
 
 ### Context

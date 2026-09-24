@@ -1,5 +1,6 @@
 // Copyright © Erickson Lopez. MIT License.
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AwesomeAssertions;
@@ -251,5 +252,97 @@ public class MediatorTests
         ex.Which.HandlerExceptions.Should().HaveCount(2);
         ex.Which.HandlerExceptions.Should().Contain(e => e is InvalidOperationException && e.Message == "First aggregated error");
         ex.Which.HandlerExceptions.Should().Contain(e => e is ArgumentException && e.Message == "Second aggregated error");
+    }
+
+    // ────────────────────────────────────────────────────────────────────────────────
+    // REGRESSION TESTS for PIPE-001, PIPE-002, DI-003 audit fixes
+    // ────────────────────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// PIPE-001: A behavior that does not call next.InvokeAsync() short-circuits the pipeline.
+    /// The handler must NOT be invoked. Previously untested pipeline contract.
+    /// </summary>
+    [Fact]
+    public async Task Send_ShortCircuitBehavior_PreventsHandlerExecution()
+    {
+        var mediator = CreateMediator();
+        var result = await mediator.Send(new ShortCircuitCommand());
+        result.Should().Be("SHORT_CIRCUIT", "behavior returned before calling next — handler must not execute");
+        result.Should().NotBe("HANDLER_REACHED", "handler must not execute when behavior short-circuits (PIPE-001)");
+    }
+
+    /// <summary>
+    /// PIPE-002: A behavior that calls next.InvokeAsync() twice causes the handler to execute twice.
+    /// This is documented behavior: the pipeline does not protect against double-invocation.
+    /// </summary>
+    [Fact]
+    public async Task Send_DoubleInvokeBehavior_InvokesHandlerTwice()
+    {
+        DoubleInvokeCommandHandler.Reset();
+        var mediator = CreateMediator();
+
+        await mediator.Send(new DoubleInvokeCommand());
+
+        DoubleInvokeCommandHandler.InvokeCount.Should().Be(2,
+            "PIPE-002: behavior calling next.InvokeAsync() twice causes handler to execute twice — " +
+            "the pipeline does not protect against double-invocation");
+    }
+
+    /// <summary>
+    /// DI-003: AddEricksonLopezMediator() is idempotent — calling it twice must not register duplicates.
+    /// </summary>
+    [Fact]
+    public void AddEricksonLopezMediator_CalledTwice_DoesNotRegisterDuplicateMediator()
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton(new TestStateTracker());
+        services.AddEricksonLopezMediator();
+        services.AddEricksonLopezMediator(); // second call — must be idempotent (DI-003 fix: TryAdd)
+
+        var sp = services.BuildServiceProvider();
+
+        // Only one IMediator should be registered
+        var mediators = sp.GetServices<IMediator>().ToArray();
+        mediators.Should().HaveCount(1, "DI-003: AddEricksonLopezMediator() must be idempotent — calling twice must not create a second registration");
+    }
+
+    /// <summary>
+    /// ADR-037: AddEricksonLopezMediator() registers IMediator as Scoped by default.
+    /// </summary>
+    [Fact]
+    public void AddEricksonLopezMediator_DefaultLifetime_IsScoped()
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton(new TestStateTracker());
+        services.AddEricksonLopezMediator();
+
+        var descriptor = services.First(s => s.ServiceType == typeof(IMediator));
+        descriptor.Lifetime.Should().Be(ServiceLifetime.Scoped, "ADR-037 requires Scoped lifetime by default to prevent captive dependencies");
+
+        var senderDescriptor = services.First(s => s.ServiceType == typeof(ISender));
+        senderDescriptor.Lifetime.Should().Be(ServiceLifetime.Scoped);
+
+        var publisherDescriptor = services.First(s => s.ServiceType == typeof(IPublisher));
+        publisherDescriptor.Lifetime.Should().Be(ServiceLifetime.Scoped);
+    }
+
+    /// <summary>
+    /// ADR-037: AddEricksonLopezMediator(ServiceLifetime.Singleton) allows explicit opt-in for background workers.
+    /// </summary>
+    [Fact]
+    public void AddEricksonLopezMediator_ExplicitSingletonLifetime_RegistersSingletonMediator()
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton(new TestStateTracker());
+        services.AddEricksonLopezMediator(ServiceLifetime.Singleton);
+
+        var descriptor = services.First(s => s.ServiceType == typeof(IMediator));
+        descriptor.Lifetime.Should().Be(ServiceLifetime.Singleton, "ADR-037 allows explicit opt-in to Singleton lifetime");
+
+        var senderDescriptor = services.First(s => s.ServiceType == typeof(ISender));
+        senderDescriptor.Lifetime.Should().Be(ServiceLifetime.Singleton);
+
+        var publisherDescriptor = services.First(s => s.ServiceType == typeof(IPublisher));
+        publisherDescriptor.Lifetime.Should().Be(ServiceLifetime.Singleton);
     }
 }

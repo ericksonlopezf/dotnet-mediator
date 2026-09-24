@@ -19,6 +19,7 @@ namespace EricksonLopez.Mediator.OpenTelemetry;
 public sealed class OpenTelemetryBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
 {
     internal static readonly ActivitySource DefaultActivitySource = new("EricksonLopez.Mediator");
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, ActivitySource> ActivitySourceCache = new(StringComparer.Ordinal);
     private readonly ActivitySource _activitySource;
     private readonly Action<Activity, object>? _enrichActivity;
 
@@ -46,7 +47,7 @@ public sealed class OpenTelemetryBehavior<TRequest, TResponse> : IPipelineBehavi
     {
         _activitySource = string.IsNullOrEmpty(options?.ActivitySourceName) || options!.ActivitySourceName == "EricksonLopez.Mediator"
             ? DefaultActivitySource
-            : new ActivitySource(options.ActivitySourceName);
+            : ActivitySourceCache.GetOrAdd(options.ActivitySourceName, name => new ActivitySource(name));
         _enrichActivity = options?.EnrichActivity;
     }
 

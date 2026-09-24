@@ -1,242 +1,149 @@
-# CI/CD Pipeline
+# CI/CD Pipelines & Quality Infrastructure
 
-The `EricksonLopez.Mediator` ecosystem uses a GitHub Actions pipeline with 8 specialized
-workflows. The architecture separates **continuous integration** from **mutation testing**,
-**benchmarking**, and **publishing** — each runs independently on its own schedule or trigger.
+The `EricksonLopez.Mediator` ecosystem uses a comprehensive GitHub Actions CI/CD pipeline comprising 10 specialized workflows. The architecture strictly segregates **continuous integration** from **mutation testing**, **performance regression gating**, **governance compliance**, and **release publishing**.
 
 ---
 
-## 1. Workflow Overview
+## 1. Workflow Catalog
 
 | Workflow | File | Trigger | Purpose |
 |---|---|---|---|
-| **CI** | `ci.yml` | `push`/`PR` → `main`, `develop` | Orchestrator: calls build-test + AOT smoke test |
-| **Reusable Build & Test** | `dotnet-build-test.yml` | `workflow_call` | Build, test, coverage, SonarCloud |
-| **NativeAOT Smoke Test** | `aot-smoke-test.yml` | `push`/`PR`, `workflow_call`, `workflow_dispatch` | Compile and run a NativeAOT binary |
-| **Publish NuGet** | `publish.yml` | `push v*.*.*` tag, `workflow_dispatch` | Pack + sign + publish all packages |
-| **Release Please** | `release-please.yml` | `push` → `main` | Automated release PR + dispatch publish |
-| **Mutation Testing** | `mutation-testing.yml` | Schedule Mon 04:00 UTC, `workflow_dispatch` | Stryker mutation analysis (not in main CI) |
-| **Benchmarks** | `benchmarks.yml` | `workflow_call`, `workflow_dispatch` | BenchmarkDotNet baseline capture (quality gate in `publish.yml`) |
-| **Weekly Benchmarks** | `weekly-benchmarks.yml` | Schedule Sun 02:00 UTC, `workflow_dispatch` | Deep benchmark: .NET 8 + 9 + 10 |
+| **CI Orchestrator** | `.github/workflows/ci.yml` | `push`, `pull_request` → `main`, `develop` | Orchestrates parallel build, unit tests, coverage, and Native AOT smoke testing |
+| **Reusable Build & Test** | `.github/workflows/dotnet-build-test.yml` | `workflow_call` | Restores SNK, builds, runs tests with Coverlet, and reports to SonarCloud & Codecov |
+| **Native AOT Smoke Test** | `.github/workflows/aot-smoke-test.yml` | `push`, `pull_request`, `workflow_call`, `workflow_dispatch` | Cross-compiles (`PublishAot=true`) and executes native Linux binary with zero trimming warnings |
+| **Repository Compliance** | `.github/workflows/repo-compliance.yml` | `push`, `pull_request` → `main`, `workflow_dispatch` | Zero-tolerance governance auditor enforcing kebab-case docs, license headers, and CPM invariants |
+| **Benchmark Regression Gate** | `.github/workflows/benchmark-regression-gate.yml` | `pull_request` → `main`, `develop` (paths: `src/**`, `benchmarks/**`) | Runs PR micro-benchmarks and asserts 0 B allocation invariant and ≤ 5% latency regression |
+| **Release Please** | `.github/workflows/release-please.yml` | `push` → `main` | Analyzes Conventional Commits, maintains `CHANGELOG.md`, tags releases, and triggers `publish.yml` |
+| **Publish NuGet** | `.github/workflows/publish.yml` | `push` tag `v*.*.*`, `workflow_dispatch` | Evaluates mutation & benchmark gates, packs, RSA signs, attests build provenance, and pushes to NuGet.org |
+| **Mutation Testing** | `.github/workflows/mutation-testing.yml` | Schedule (Mon 04:00 UTC), `workflow_call`, `workflow_dispatch` | Stryker.NET 10-job matrix execution across all packages (High=100%, Low=98%, Break=95%) |
+| **Benchmark Baseline Capture** | `.github/workflows/benchmarks.yml` | `workflow_call` (via `publish.yml`), `workflow_dispatch` | Executes BenchmarkDotNet and commits baseline results to `benchmarks/results/` |
+| **Weekly Deep Benchmarks** | `.github/workflows/weekly-benchmarks.yml` | Schedule (Sun 02:00 UTC), `workflow_dispatch` | Multi-TFM deep statistical benchmark review across .NET 8, 9, and 10 |
 
 ---
 
-## 2. CI Pipeline Flow
+## 2. CI Pipeline Architecture
 
-The main CI orchestrator (`ci.yml`) runs on every push and pull request to `main`
-or `develop`. It is deliberately minimal — it delegates all heavy lifting to
-reusable workflows via `uses:`.
+The primary continuous integration orchestrator (`ci.yml`) runs on every commit and pull request to `main` and `develop`. It delegates execution to reusable sub-workflows running in parallel:
 
 ```mermaid
 flowchart TD
-    A([push / PR to main or develop]) --> B[ci.yml]
+    Trigger([push / PR to main or develop]) --> CI[ci.yml Orchestrator]
 
-    B --> C[dotnet-build-test.yml]
-    B --> D[aot-smoke-test.yml]
-
-    subgraph dotnet-build-test.yml
-        C --> C1[Restore SNK key]
-        C1 --> C2[dotnet restore]
-        C2 --> C3[SonarScanner begin]
-        C3 --> C4[dotnet build Release]
-        C4 --> C5[dotnet test + Coverlet]
-        C5 --> C6[SonarScanner end]
-        C6 --> C7[Upload coverage to Codecov]
-        C7 --> C8[Upload test-results artifact]
+    subgraph BuildAndTestJob["Build & Test (dotnet-build-test.yml)"]
+        CI --> RestoreSNK[Restore SNK Key from Secret]
+        RestoreSNK --> DotnetRestore[dotnet restore EricksonLopez.Mediator.slnx]
+        DotnetRestore --> FormatCheck[dotnet format --verify-no-changes]
+        FormatCheck --> LicenseCheck[Verify MIT License Headers]
+        LicenseCheck --> DocNamingCheck[Verify Kebab-Case Doc Names]
+        DocNamingCheck --> SonarBegin[SonarCloud Scanner Begin]
+        SonarBegin --> BuildRelease[dotnet build Release]
+        BuildRelease --> TestCoverlet[dotnet test + Coverlet Coverage]
+        TestCoverlet --> SonarEnd[SonarCloud Scanner End]
+        SonarEnd --> UploadCodecov[Upload Coverage to Codecov]
+        UploadCodecov --> UploadTestResults[Upload test-results Artifact]
     end
 
-    subgraph aot-smoke-test.yml
-        D --> D1[Install clang + lld + zlib]
-        D1 --> D2[dotnet restore]
-        D2 --> D3[dotnet build Release]
-        D3 --> D4[dotnet publish --PublishAot=true]
-        D4 --> D5[Run NativeAOT binary]
+    subgraph AotSmokeTestJob["Native AOT Smoke Test (aot-smoke-test.yml)"]
+        CI --> InstallToolchain[Install Clang, LLD, zlib]
+        InstallToolchain --> AotRestore[dotnet restore EricksonLopez.Mediator.slnx]
+        AotRestore --> AotBuild[dotnet build Release]
+        AotBuild --> AotPublish[dotnet publish tests/EricksonLopez.Mediator.AotSmokeTest -p:PublishAot=true]
+        AotPublish --> RunBinary[Execute Native Linux Binary]
     end
 ```
 
-> [!NOTE]
-> **Mutation Testing is NOT part of the main CI.** It runs as a separate scheduled
-> job (`mutation-testing.yml`) every Monday at 04:00 UTC, or on manual dispatch.
-> This is intentional — Stryker runs can take up to 60 minutes.
-
 ---
 
-## 3. Release → Publish Flow
+## 3. Release & NuGet Publication Pipeline
 
-Releases are managed by **Release Please** (`release-please.yml`), which creates
-automated release PRs based on Conventional Commits. When a release PR is merged:
-
-1. Release Please creates a GitHub Release and a `vX.Y.Z` git tag.
-2. `release-please.yml` dispatches `publish.yml` via `workflow_dispatch`, passing
-   the resolved version number.
+Package publishing is triggered either automatically when a Release PR is merged via Release Please, or manually by pushing a `v*.*.*` tag. The publishing workflow enforces rigorous quality gates before artifacts reach NuGet.org:
 
 ```mermaid
-flowchart LR
-    A([Conventional Commit merged to main]) --> B[release-please.yml]
-    B --> C{Release PR exists?}
-    C -- No --> D[Create/Update Release PR]
-    C -- Yes, merged --> E[Create GitHub Release + tag vX.Y.Z]
-    E --> F[Dispatch publish.yml]
+flowchart TD
+    Start([Release PR Merged / v*.*.* Tag]) --> RP[release-please.yml]
+    RP --> Dispatch[Dispatch publish.yml with SemVer]
 
-    subgraph publish.yml
-        F --> G[Restore SNK key]
-        G --> H[dotnet restore + build Release]
-        H --> I[dotnet test — publish gate]
-        I --> J[Upload coverage — publish-gate flag]
-        J --> K[dotnet pack — all packages]
-        K --> L[Sigstore Provenance Attestation]
-        L --> M[NuGet OIDC login]
-        M --> N[dotnet nuget push --skip-duplicate]
-        N --> O[Create GitHub Release body with package table]
+    subgraph PrePublishQualityGates["Pre-Publish Quality Gates"]
+        Dispatch --> Gate1[Job: mutation-tests -> mutation-testing.yml]
+        Dispatch --> Gate2[Job: benchmark-gate -> benchmarks.yml]
+        Gate1 & Gate2 --> PublishJob[Job: publish]
+        PublishJob --> ScriptGate[Validate Stryker Gate via verify-mutation-gate.js]
+    end
+
+    subgraph PackAndPublish["Artifact Generation & Distribution"]
+        ScriptGate --> RestoreKey[Restore EricksonLopez.snk]
+        RestoreKey --> FullBuild[dotnet build Release]
+        FullBuild --> FullTest[dotnet test + Publish Gate Coverage]
+        FullTest --> PackAll[dotnet pack 10 Packages to ./nupkgs/]
+        PackAll --> Sigstore[actions/attest-build-provenance@v2]
+        Sigstore --> OIDCLogin[NuGet/login@v1 OIDC Authentication]
+        OIDCLogin --> PushNuGet[dotnet nuget push to api.nuget.org --skip-duplicate]
+        PushNuGet --> GhRelease[Create GitHub Release with Ecosystem Matrix]
     end
 ```
 
 ---
 
-## 4. Reusable Workflow — `dotnet-build-test.yml`
+## 4. Quality Gates & Governance Audit Scripts
 
-All callers of this workflow must pass secrets explicitly.
+The repository includes dedicated verification scripts executed locally and in CI:
 
-### Inputs
+### 4.1 Repository Compliance (`scripts/verify-compliance.ps1`)
+Executed on every push to `main` via `repo-compliance.yml`:
+1. **Kebab-Case Naming**: Enforces `^[a-z0-9]+(-[a-z0-9]+)*\.md$` across all `/docs/` files.
+2. **Zero `[Obsolete]`**: Verifies zero deprecated API usages in production code (`src/`).
+3. **MIT License Headers**: Checks canonical copyright header on all `.cs` source files.
+4. **Single Type per File**: Enforces architectural isolation in `src/`.
+5. **GitHub Identity Normalization**: Validates references target `ericksonlopezf/dotnet-mediator`.
+6. **Support Email Normalization**: Validates `ericksonlopezf@gmail.com`.
+7. **NoWarn Governance**: Prevents prohibited warning suppressions (e.g. CS0618/CS0619).
+8. **Stryker Parity Gate**: Verifies exact 1:1 parity between `src/` projects and Stryker profiles.
+9. **README Package Table Parity**: Ensures all 10 projects in `src/` are documented in `README.md`.
+10. **Test Suite Symmetry**: Enforces dedicated test suites or direct project references for all packages.
 
-| Input | Type | Default | Description |
-|---|---|---|---|
-| `dotnet-version` | `string` | `10.0.x` | .NET SDK version |
-| `test-filter` | `string` | `""` | `dotnet test --filter` expression |
-| `test-project` | `string` | `""` | Specific test project path |
-| `upload-coverage` | `boolean` | `true` | Upload coverage to Codecov |
-| `artifact-name` | `string` | `test-results` | Artifact upload name |
+### 4.2 Benchmark Regression Gate (`scripts/verify-benchmark-gate.ps1`)
+Executed on every pull request altering `src/**` or `benchmarks/**`:
+- **Zero-Allocation Invariant**: Asserts exactly 0 B heap allocated on the hot path.
+- **Latency Threshold**: Asserts PR mean execution latency does not regress > 5% vs `benchmarks/results/baseline.json`.
 
-### Secrets
+---
 
-| Secret | Required | Description |
+## 5. Mutation Testing Infrastructure (`mutation-testing.yml`)
+
+Stryker.NET executes across a 10-job parallel matrix covering all packages:
+
+| Matrix Job | Target Project | Configuration File |
 |---|---|---|
-| `SNK_KEY` | Optional | Base64-encoded `.snk` for strong-name signing |
-| `CODECOV_TOKEN` | Optional | Codecov upload token |
-| `SONAR_TOKEN` | Optional | SonarCloud analysis token |
+| **Core** | `src/EricksonLopez.Mediator` | `stryker-config.json` |
+| **Generator** | `src/EricksonLopez.Mediator.Generator` | `stryker-generator-config.json` |
+| **AspNetCore** | `src/EricksonLopez.Mediator.AspNetCore` | `stryker-aspnetcore-config.json` |
+| **Caching** | `src/EricksonLopez.Mediator.Caching` | `stryker-caching-config.json` |
+| **FluentValidation** | `src/EricksonLopez.Mediator.FluentValidation` | `stryker-fluentvalidation-config.json` |
+| **OpenTelemetry** | `src/EricksonLopez.Mediator.OpenTelemetry` | `stryker-opentelemetry-config.json` |
+| **Polly** | `src/EricksonLopez.Mediator.Polly` | `stryker-polly-config.json` |
+| **RateLimiting** | `src/EricksonLopez.Mediator.RateLimiting` | `stryker-ratelimiting-config.json` |
+| **Result** | `src/EricksonLopez.Mediator.Result` | `stryker-result-config.json` |
+| **Testing** | `src/EricksonLopez.Mediator.Testing` | `stryker-testing-config.json` |
 
-
-### Artifacts Produced
-
-| Artifact | Path | Retention |
-|---|---|---|
-| `test-results` (configurable) | `./test-results/` | Default GitHub Actions |
-| `coverage.opencover.xml` | `./test-results/**/` | Uploaded to Codecov |
-| `coverage.cobertura.xml` | `./test-results/**/` | Uploaded to Codecov |
-
----
-
-## 5. NativeAOT Smoke Test — `aot-smoke-test.yml`
-
-Tests that all packages with `IsAotCompatible=true` actually compile and run
-under NativeAOT (ILC). Runs on every push/PR alongside the main CI, and can
-also be called as a reusable workflow.
-
-**Secrets Required:**
-| Secret | Required | Description |
-|---|---|---|
-| `SNK_KEY` | Optional | Base64-encoded `.snk` for strong-name signing |
-
-**Key flags used during publish:**
-```
--p:PublishAot=true
--p:TreatWarningsAsErrors=true
--p:WarningLevel=5
-DOTNET_EnableAotCompilationWarningsAsErrors=true
-```
-
-This configuration causes the build to fail on any `IL2026` (Reflection) or
-`IL3050` (dynamic code) warnings, making NativeAOT compliance a hard gate.
-
-> [!IMPORTANT]
-> The AOT smoke test uses .NET **8.0.x** SDK (not 10.0.x) for the `dotnet publish`
-> step. This ensures compatibility with the lowest supported TFM of the core package.
+### Threshold Policy:
+- **High ($\ge 100\%$)**: Target threshold.
+- **Low ($\ge 98\%$)**: Acceptable threshold.
+- **Warning ($\ge 95\%$)**: Approaching break limit.
+- **Break ($< 95\%$)**: Hard gate failure; pipeline aborts and blocks publish.
 
 ---
 
-## 6. Mutation Testing — `mutation-testing.yml`
+## 6. Supply Chain Security Invariants
 
-Stryker.NET runs as a dedicated weekly scheduled workflow (Monday 04:00 UTC) and on manual dispatch. It executes a **9-job parallel matrix** covering all source packages:
-
-| Parameter | Value |
-|---|---|
-| **Schedule** | Every Monday at 04:00 UTC |
-| **Matrix Strategy** | 9 parallel jobs: `Core`, `Generator`, `OpenTelemetry`, `Polly`, `Result`, `Testing`, `Validation`, `AspNetCore`, `RateLimiting` |
-| **Mutation Level** | `Standard` (default); `Basic` or `Advanced` via `workflow_dispatch` |
-| **Report Formats** | HTML, JSON, cleartext, progress (30-day artifact retention) |
-| **Threshold Policy** | Runtime libraries: High: 100%, Low: 98%, Break: 95% <br/> Roslyn Generator / Consolidated Gate: High: 100%, Low: 95%, Break: 90% |
-| **Consolidated Gate** | `mutation-gate-summary` job aggregates all JSON reports, calculates ecosystem-wide mutation score (Break: ≥90%), and publishes GitHub Commit Status (`mutation-testing/stryker`) |
-
-### Stryker Config Files:
-- `stryker-config.json` — Core library (`EricksonLopez.Mediator`)
-- `stryker-generator-config.json` — Source Generator (`EricksonLopez.Mediator.Generator`)
-- `stryker-aspnetcore-config.json` — Minimal APIs (`EricksonLopez.Mediator.AspNetCore`)
-- `stryker-opentelemetry-config.json` — OpenTelemetry (`EricksonLopez.Mediator.OpenTelemetry`)
-- `stryker-polly-config.json` — Resilience (`EricksonLopez.Mediator.Polly`)
-- `stryker-ratelimiting-config.json` — Rate Limiting (`EricksonLopez.Mediator.RateLimiting`)
-- `stryker-result-config.json` — Result integration (`EricksonLopez.Mediator.Result`)
-- `stryker-testing-config.json` — Testing utilities (`EricksonLopez.Mediator.Testing`)
-- `stryker-validation-config.json` — Validation (`EricksonLopez.Mediator.Validation`)
-- `stryker-config-unit.json` — Fast local developer smoke test config
-
-Stryker exclusions (configured in both config files):
-- Generated files (`*.g.cs`, `Generated/**`)
-- Source generators (`*Generator.cs`, `SourceGenerators/**`)
-- Analyzers (`EricksonLopez.Mediator.Analyzers/**`, `*Analyzer.cs`, `*CodeFixProviders.cs`)
-- Testing helpers (`Testing/**`)
-
----
-
-## 7. Benchmarks — `benchmarks.yml` and `weekly-benchmarks.yml`
-
-Two benchmark workflows exist:
-
-| Workflow | Trigger | Runtimes | Timeout | Commit results? |
-|---|---|---|---|---|
-| `benchmarks.yml` | `workflow_call` (via `publish.yml`), `workflow_dispatch` | net8.0, net9.0, net10.0 | 60 min | Configurable (default `false` in release gate, `true` in manual dispatch) |
-| `weekly-benchmarks.yml` | Sun 02:00 UTC, `workflow_dispatch` | net8.0, net9.0, net10.0 | 300 min | Yes (auto-commit) |
-
-Benchmark results are exported as JSON and Markdown and committed to
-`benchmarks/results/` in the repository (with `[skip ci]` to prevent re-triggering).
-Artifacts are retained for 90 days.
-
----
-
-## 8. Supply Chain Security
-
-| Mechanism | Implementation |
-|---|---|
-| **Strong Name Signing** | `EricksonLopez.snk` — base64 stored in `SNK_KEY` secret; decoded at build time |
-| **OIDC Trusted Publishing** | `NuGet/login@v1` — no static API key; GitHub OIDC authenticates to NuGet.org |
-| **Sigstore Provenance Attestation** | `actions/attest-build-provenance@v2` applied to all `.nupkg` files |
-| **NuGet Audit** | `NuGetAudit=true`, `NuGetAuditMode=all`, `NuGetAuditLevel=low` in `Directory.Build.props` |
-| **Dependabot** | NuGet (weekly Mon), GitHub Actions (monthly Mon) |
-
----
-
-## 9. Branch Strategy
-
-Based on CI trigger analysis:
-
-| Branch | Protected | CI Runs |
-|---|---|---|
-| `main` | Yes | On `push` and `PR` |
-| `develop` | Partially | On `push` and `PR` |
-
-> [!NOTE]
-> No evidence of `hotfix/*` or `release/*` branches in any workflow trigger.
-> The project uses **trunk-based development** with Release Please managing releases
-> from `main`.
-
----
-
-## 10. Pre-Release Detection
-
-The `publish.yml` workflow detects pre-release versions:
-
-```yaml
-prerelease: ${{ contains(steps.version.outputs.VERSION, '-') }}
-```
-
-A tag like `v1.0.0-preview.1` sets `prerelease: true` on the GitHub Release and
-the NuGet package will be published as a pre-release.
+1. **Strong Name Assembly Signing**:
+   - `Directory.Build.props` automatically signs all assemblies if `EricksonLopez.snk` is present.
+   - CI workflows decode the RSA private key from the encrypted secret `SNK_KEY`.
+2. **NuGet Trusted Publishing (OIDC)**:
+   - Publication uses short-lived GitHub Actions OpenID Connect tokens (`id-token: write`).
+   - No permanent static NuGet API keys are stored in the repository.
+3. **Cryptographic Build Provenance (Sigstore)**:
+   - `actions/attest-build-provenance@v2` signs and registers all `.nupkg` artifacts with Sigstore, enabling public verification of package authenticity.
+4. **NuGet Vulnerability Auditing**:
+   - `<NuGetAudit>true</NuGetAudit>`, `<NuGetAuditMode>all</NuGetAuditMode>`, and `<NuGetAuditLevel>low</NuGetAuditLevel>` in `Directory.Build.props` cause restore and build to fail on known CVEs.
+5. **Automated Dependency Updates**:
+   - Dependabot actively scans NuGet packages (weekly) and GitHub Actions (monthly).

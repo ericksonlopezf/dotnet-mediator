@@ -1,5 +1,21 @@
 # Release Notes
 
+## Version 2.0.0 (General Availability) - 2026-09-24
+
+We are thrilled to announce the official General Availability (GA) release of **EricksonLopez.Mediator 2.0.0**, featuring scoped mediator lifetimes by default, dedicated high-performance query caching, MediatR migration primitives, and full Native AOT compatibility across .NET 10, .NET 9, and .NET 8.
+
+### Highlights
+- **Scoped Mediator by Default (ADR-037):** `AddEricksonLopezMediator()` now defaults to `ServiceLifetime.Scoped`, eliminating captive dependencies and multitenant context leaks when handlers inject scoped dependencies (e.g., database contexts).
+- **`EricksonLopez.Mediator.Caching` Package (ADR-038):** High-performance response caching and cache invalidation pipeline behaviors (`CachingPipelineBehavior<TRequest, TResponse>`, `[Cacheable]`, `ICacheableRequest`, `IInvalidateCacheRequest`).
+- **MediatR Migration Primitives:** Added optional migration contracts (`IRequest<TResponse>`, `IRequest`, `IRequestHandler<TRequest, TResponse>`, `IRequestHandler<TRequest>`, `Unit`) enabling seamless transition from legacy MediatR codebases.
+- **Deprecation of `EricksonLopez.Mediator.Polly` (ADR-036):** Public types marked obsolete in favor of Clean Architecture-compliant `EricksonLopez.Resilience.Mediator`.
+- **AOT Hardening & Pre-flight Validation:** Enforced immediate pre-flight cancellation checks across `StaticMediator` and `FakeMediator`, with sealed source generator classes.
+- **Result Ecosystem 3.0.0 Upgrade:** Upgraded dependency on `EricksonLopez.Result` and `EricksonLopez.Result.FluentValidation` to 3.0.0.
+
+Available on NuGet today!
+
+---
+
 ## Version 1.0.0 (General Availability) - 2026-08-26
 
 We are thrilled to announce the official General Availability (GA) release of **EricksonLopez.Mediator 1.0.0**, a high-performance, Native AOT compatible, zero-allocation CQRS dispatching framework for .NET 10, .NET 9, and .NET 8.

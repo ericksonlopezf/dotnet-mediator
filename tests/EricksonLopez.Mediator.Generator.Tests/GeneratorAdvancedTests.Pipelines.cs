@@ -138,12 +138,11 @@ namespace TestApp
         var dispatcherCode = generatedSyntaxTrees.First(t => t.FilePath.Contains("GeneratedMediator.g.cs")).ToString();
 
         // Should generate structs for next
-        dispatcherCode.Should().Contain("internal readonly struct MyCommandHandlerNext");
-        dispatcherCode.Should().Contain("internal readonly struct MyCommandBehavior0Next");
-        dispatcherCode.Should().Contain("internal readonly struct MyCommandBehavior1Next");
-
+        dispatcherCode.Should().Contain("internal readonly struct TestApp_MyCommandHandlerNext");
+        dispatcherCode.Should().Contain("internal readonly struct TestApp_MyCommandBehavior0Next");
+        dispatcherCode.Should().Contain("internal readonly struct TestApp_MyCommandBehavior1Next");
         // Should chain them in the switch case
-        Assert.Contains("var handlerNext = new MyCommandHandlerNext(handler, req, cancellationToken);", dispatcherCode);
+        Assert.Contains("var handlerNext = new TestApp_MyCommandHandlerNext(_serviceProvider, req, cancellationToken);", dispatcherCode);
         dispatcherCode.Should().Contain("var b3 = _serviceProvider.GetRequiredService<global::TestApp.ValidationBehavior>();");
         dispatcherCode.Should().Contain("var b2 = _serviceProvider.GetRequiredService<global::TestApp.ClosedGenericBehavior<global::TestApp.MyCommand>>();");
         dispatcherCode.Should().Contain("var b1 = _serviceProvider.GetRequiredService<global::TestApp.SpecificBehavior>();");
@@ -157,41 +156,24 @@ namespace TestApp
     public void Dispatcher_GeneratesParallelNotification_WhenStrategyIsParallel()
     {
         string source = @"
-
 namespace TestApp
 {
-    /// <summary>
-    /// Represents MyEvent.
-    /// </summary>
     [PublishStrategy(PublishStrategy.Parallel)]
     public class MyEvent : INotification { }
-    
-    /// <summary>
-    /// Represents Handler1.
-    /// </summary>
+
     public class Handler1 : INotificationHandler<MyEvent>
     {
-        /// <summary>
-        /// Executes Handle.
-        /// </summary>
         public ValueTask Handle(MyEvent notification, CancellationToken ct) => default;
     }
-    /// <summary>
-    /// Represents Handler2.
-    /// </summary>
+
     public class Handler2 : INotificationHandler<MyEvent>
     {
-        /// <summary>
-        /// Executes Handle.
-        /// </summary>
         public ValueTask Handle(MyEvent notification, CancellationToken ct) => default;
     }
-}
-";
-        var compilation = CreateCompilation(source);
-        var generator = new MediatorSourceGenerator();
-        var driver = CSharpGeneratorDriver.Create(generator);
+}";
 
+        var compilation = CreateCompilation(source);
+        var driver = CSharpGeneratorDriver.Create(new MediatorSourceGenerator());
         driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
 
         diagnostics.Should().BeEmpty();
@@ -202,7 +184,7 @@ namespace TestApp
         dispatcherCode.Should().Contain("var tasks = new Task[2];");
         Assert.Contains("tasks[0] = _sp.GetRequiredService<global::TestApp.Handler1>().Handle(_n, _ct).AsTask();", dispatcherCode);
         Assert.Contains("tasks[1] = _sp.GetRequiredService<global::TestApp.Handler2>().Handle(_n, _ct).AsTask();", dispatcherCode);
-        dispatcherCode.Should().Contain("await Task.WhenAll(tasks).ConfigureAwait(false);");
+        dispatcherCode.Should().Contain("await allTasks.ConfigureAwait(false);");
     }
 
     /// <summary>
@@ -212,32 +194,24 @@ namespace TestApp
     public void Dispatcher_GeneratesSequentialNotification_WhenStrategyIsSequential()
     {
         string source = @"
-
 namespace TestApp
 {
-    // Sequential by default or explicitly
-    /// <summary>
-    /// Represents MyEvent.
-    /// </summary>
     [PublishStrategy(PublishStrategy.Sequential)]
     public class MyEvent : INotification { }
-    
-    /// <summary>
-    /// Represents Handler1.
-    /// </summary>
+
     public class Handler1 : INotificationHandler<MyEvent>
     {
-        /// <summary>
-        /// Executes Handle.
-        /// </summary>
         public ValueTask Handle(MyEvent notification, CancellationToken ct) => default;
     }
-}
-";
-        var compilation = CreateCompilation(source);
-        var generator = new MediatorSourceGenerator();
-        var driver = CSharpGeneratorDriver.Create(generator);
 
+    public class Handler2 : INotificationHandler<MyEvent>
+    {
+        public ValueTask Handle(MyEvent notification, CancellationToken ct) => default;
+    }
+}";
+
+        var compilation = CreateCompilation(source);
+        var driver = CSharpGeneratorDriver.Create(new MediatorSourceGenerator());
         driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
 
         diagnostics.Should().BeEmpty();
@@ -245,8 +219,8 @@ namespace TestApp
         var generatedSyntaxTrees = outputCompilation.SyntaxTrees.ToList();
         var dispatcherCode = generatedSyntaxTrees.First(t => t.FilePath.Contains("GeneratedMediator.g.cs")).ToString();
 
-        Assert.Contains("await _sp.GetRequiredService<global::TestApp.Handler1>().Handle(_n, _ct).ConfigureAwait(false);", dispatcherCode);
-        dispatcherCode.Should().NotContain("var tasks = new Task[");
+        dispatcherCode.Should().Contain("await _sp.GetRequiredService<global::TestApp.Handler1>().Handle(_n, _ct).ConfigureAwait(false);");
+        dispatcherCode.Should().Contain("await _sp.GetRequiredService<global::TestApp.Handler2>().Handle(_n, _ct).ConfigureAwait(false);");
     }
 
     /// <summary>
@@ -256,63 +230,30 @@ namespace TestApp
     public void DependencyInjection_GeneratesCorrectRegistrations()
     {
         string source = @"
-
 namespace TestApp
 {
-    /// <summary>
-    /// Represents MyCommand1.
-    /// </summary>
     public class MyCommand1 : ICommand<int> { }
-    /// <summary>
-    /// Represents MyCommand2.
-    /// </summary>
     public class MyCommand2 : ICommand<int> { }
-    /// <summary>
-    /// Represents MyCommand3.
-    /// </summary>
     public class MyCommand3 : ICommand<int> { }
 
-    /// <summary>
-    /// Represents TransientHandler.
-    /// </summary>
     [ServiceLifetime(HandlerLifetime.Transient)]
     public class TransientHandler : ICommandHandler<MyCommand1, int> { public ValueTask<int> Handle(MyCommand1 command, CancellationToken ct) => default; }
 
-    /// <summary>
-    /// Represents ScopedHandler.
-    /// </summary>
     [ServiceLifetime(HandlerLifetime.Scoped)]
     public class ScopedHandler : ICommandHandler<MyCommand2, int> { public ValueTask<int> Handle(MyCommand2 command, CancellationToken ct) => default; }
 
-    /// <summary>
-    /// Represents SingletonHandler.
-    /// </summary>
     [ServiceLifetime(HandlerLifetime.Singleton)]
     public class SingletonHandler : ICommandHandler<MyCommand3, int> { public ValueTask<int> Handle(MyCommand3 command, CancellationToken ct) => default; }
-    
-    /// <summary>
-    /// Represents SomeQuery.
-    /// </summary>
-    public class SomeQuery : IQuery<int> { }
-    /// <summary>
-    /// Represents QueryHandler.
-    /// </summary>
-    public class QueryHandler : IQueryHandler<SomeQuery, int> { public ValueTask<int> Handle(SomeQuery query, CancellationToken ct) => default; }
-    
-    /// <summary>
-    /// Represents SomeEvent.
-    /// </summary>
-    public class SomeEvent : INotification { }
-    /// <summary>
-    /// Represents EventHandler.
-    /// </summary>
-    public class EventHandler : INotificationHandler<SomeEvent> { public ValueTask Handle(SomeEvent notification, CancellationToken ct) => default; }
-}
-";
-        var compilation = CreateCompilation(source);
-        var generator = new MediatorSourceGenerator();
-        var driver = CSharpGeneratorDriver.Create(generator);
 
+    public class SomeQuery : IQuery<int> { }
+    public class QueryHandler : IQueryHandler<SomeQuery, int> { public ValueTask<int> Handle(SomeQuery query, CancellationToken ct) => default; }
+
+    public class SomeEvent : INotification { }
+    public class EventHandler : INotificationHandler<SomeEvent> { public ValueTask Handle(SomeEvent notification, CancellationToken ct) => default; }
+}";
+
+        var compilation = CreateCompilation(source);
+        var driver = CSharpGeneratorDriver.Create(new MediatorSourceGenerator());
         driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
 
         diagnostics.Should().BeEmpty();
@@ -321,7 +262,9 @@ namespace TestApp
         var diCode = generatedSyntaxTrees.First(t => t.FilePath.Contains("GeneratedMediatorExtensions.g.cs")).ToString();
 
         string expected = @"// <auto-generated/>
+#nullable enable
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using EricksonLopez.Mediator;
 using EricksonLopez.Mediator.Generated;
 
@@ -329,17 +272,22 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static class GeneratedMediatorExtensions
     {
-        public static IServiceCollection AddEricksonLopezMediator(this IServiceCollection services)
+        /// <summary>
+        /// Registers mediator components into the <see cref=""IServiceCollection""/> with Scoped lifetime by default (ADR-037).
+        /// </summary>
+        /// <param name=""services"">The service collection to register into.</param>
+        /// <param name=""lifetime"">The service lifetime for <see cref=""IMediator""/>, <see cref=""ISender""/>, and <see cref=""IPublisher""/> (default: <see cref=""ServiceLifetime.Scoped""/>).</param>
+        public static IServiceCollection AddEricksonLopezMediator(this IServiceCollection services, ServiceLifetime lifetime = ServiceLifetime.Scoped)
         {
-            services.AddSingleton<IMediator, GeneratedMediator>();
-            services.AddSingleton<ISender>(sp => sp.GetRequiredService<IMediator>());
-            services.AddSingleton<IPublisher>(sp => sp.GetRequiredService<IMediator>());
+            services.TryAdd(new ServiceDescriptor(typeof(IMediator), typeof(GeneratedMediator), lifetime));
+            services.TryAdd(new ServiceDescriptor(typeof(ISender), sp => sp.GetRequiredService<IMediator>(), lifetime));
+            services.TryAdd(new ServiceDescriptor(typeof(IPublisher), sp => sp.GetRequiredService<IMediator>(), lifetime));
 
-            services.AddTransient<global::TestApp.TransientHandler>();
-            services.AddScoped<global::TestApp.ScopedHandler>();
-            services.AddSingleton<global::TestApp.SingletonHandler>();
-            services.AddTransient<global::TestApp.QueryHandler>();
-            services.AddTransient<global::TestApp.EventHandler>();
+            services.TryAddTransient<global::TestApp.TransientHandler>();
+            services.TryAddScoped<global::TestApp.ScopedHandler>();
+            services.TryAddSingleton<global::TestApp.SingletonHandler>();
+            services.TryAddTransient<global::TestApp.QueryHandler>();
+            services.TryAddTransient<global::TestApp.EventHandler>();
 
             return services;
         }
@@ -402,13 +350,13 @@ namespace TestApp
         var generatedSyntaxTrees = outputCompilation.SyntaxTrees.ToList();
         var dispatcherCode = generatedSyntaxTrees.First(t => t.FilePath.Contains("GeneratedMediator.g.cs")).ToString();
 
-        dispatcherCode.Should().Contain("internal readonly struct MyCommandHandlerNext : INext<int>");
+        dispatcherCode.Should().Contain("internal readonly struct TestApp_MyCommandHandlerNext : INext<int>");
         dispatcherCode.Should().Contain("public sealed class GeneratedMediator : IMediator");
         dispatcherCode.Should().Contain("switch (command)");
         dispatcherCode.Should().Contain("switch (notification)");
         dispatcherCode.Should().Contain("switch (request)");
-        dispatcherCode.Should().Contain("internal readonly struct MySeqNotificationNotificationNext : INext");
-        dispatcherCode.Should().Contain("internal readonly struct MyParNotificationNotificationNext : INext");
+        dispatcherCode.Should().Contain("internal readonly struct TestApp_MySeqNotificationNotificationNext : INext");
+        dispatcherCode.Should().Contain("internal readonly struct TestApp_MyParNotificationNotificationNext : INext");
         Assert.Contains("await _sp.GetRequiredService<global::TestApp.MySeqNotificationHandler>().Handle(_n, _ct).ConfigureAwait(false);", dispatcherCode);
         Assert.Contains("tasks[0] = _sp.GetRequiredService<global::TestApp.MyParNotificationHandler1>().Handle(_n, _ct).AsTask();", dispatcherCode);
     }

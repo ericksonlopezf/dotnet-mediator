@@ -16,7 +16,7 @@ public static class ServiceCollectionExtensions
     /// <param name="services">The service collection to configure.</param>
     /// <param name="configure">An optional delegate used to configure <see cref="MediatorOpenTelemetryOptions"/>.</param>
     /// <returns>The same service collection instance for method chaining.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="services"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="services"/> is <see langword="null"/></exception>
     public static IServiceCollection AddMediatorOpenTelemetry(
         this IServiceCollection services,
         Action<MediatorOpenTelemetryOptions>? configure = null)

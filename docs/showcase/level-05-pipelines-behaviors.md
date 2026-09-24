@@ -82,7 +82,7 @@ Execute only for specific commands or queries:
 ```csharp
 using EricksonLopez.Mediator;
 
-[UseBehavior(typeof(ValidationBehavior<,>), order: 1)]
+[UseBehavior(typeof(ValidationPipelineBehavior<,>), order: 1)]
 [UseBehavior(typeof(OrderLockingBehavior<,>), order: 2)]
 public sealed record ProcessPaymentCommand(Guid OrderId, decimal Amount) : ICommand<PaymentResult>;
 ```

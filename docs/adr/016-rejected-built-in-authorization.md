@@ -1,5 +1,11 @@
 # ADR-016: REJECTED — Built-in Authorization
 
+## Status
+Rejected
+
+## Date
+2026-09-04
+
 **Status**: Accepted (Rejection)
 
 ### Context

@@ -92,7 +92,7 @@ namespace TestApp
 
         var trees = outComp.SyntaxTrees.ToList();
         var diCode = trees.First(t => t.FilePath.Contains("GeneratedMediatorExtensions.g.cs")).ToString();
-        Assert.Contains("services.AddTransient<global::TestApp.MyHandler>();", diCode);
+        Assert.Contains("services.TryAddTransient<global::TestApp.MyHandler>();", diCode);
     }
 
     [Fact]
@@ -180,7 +180,7 @@ namespace TestApp
 
         var trees = outComp.SyntaxTrees.ToList();
         var diCode = trees.First(t => t.FilePath.Contains("GeneratedMediatorExtensions.g.cs")).ToString();
-        Assert.Contains("services.AddTransient<global::TestApp.OuterClass.NestedHandler>();", diCode);
+        Assert.Contains("services.TryAddTransient<global::TestApp.OuterClass.NestedHandler>();", diCode);
     }
 
     [Fact]
@@ -316,11 +316,142 @@ namespace MainApp
         var generatedDi = syntaxTrees[2].ToString();
         Assert.Contains("ExternalCommandHandler", generatedDi);
     }
+
+    [Fact]
+    public void PrivateNestedHandlers_AreIgnoredByGenerator_NoCSharp0122()
+    {
+        // Regression test for FIND-GEN-NEW-001 (MEGA-AUDIT):
+        // The generator was discovering private nested handler classes and generating
+        // inaccessible DI registrations, causing CS0122 compile errors.
+        // Fix: Added accessibility check in MediatorModelBuilder to skip private/protected types.
+        string source = @"
+using System.Threading;
+using System.Threading.Tasks;
+using EricksonLopez.Mediator;
+
+namespace TestApp
+{
+    public record MyCommand : ICommand<string>;
+
+    public class PublicHandler : ICommandHandler<MyCommand, string>
+    {
+        public ValueTask<string> Handle(MyCommand command, CancellationToken ct) => new(""public"");
+    }
+
+    public class Container
+    {
+        // Private nested handler — should NOT be discovered by generator
+        private sealed class PrivateHandler : ICommandHandler<MyCommand, string>
+        {
+            public ValueTask<string> Handle(MyCommand command, CancellationToken ct) => new(""private"");
+        }
+    }
+}
+";
+        var compilation = CreateCompilation(source);
+        var generator = new MediatorSourceGenerator();
+        var driver = CSharpGeneratorDriver.Create(generator);
+
+        driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
+
+        // No errors — private handler should be filtered out
+        Assert.Empty(diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error));
+
+        // Only the public handler should appear in generated code
+        var syntaxTrees = outputCompilation.SyntaxTrees.ToList();
+        var generatedDispatcher = syntaxTrees[1].ToString();
+        Assert.Contains("PublicHandler", generatedDispatcher);
+        Assert.DoesNotContain("PrivateHandler", generatedDispatcher);
+    }
+
+    [Fact]
+    public void MultipleHandlersForSameCommand_ELM002_ErrorEmitted()
+    {
+        // Regression test for ELM002 (duplicate handler detection):
+        // If multiple public handlers exist for the same command, ELM002 should be emitted.
+        string source = @"
+using System.Threading;
+using System.Threading.Tasks;
+using EricksonLopez.Mediator;
+
+namespace TestApp
+{
+    public record DuplicateCommand : ICommand<string>;
+
+    public class Handler1 : ICommandHandler<DuplicateCommand, string>
+    {
+        public ValueTask<string> Handle(DuplicateCommand command, CancellationToken ct) => new(""h1"");
+    }
+
+    public class Handler2 : ICommandHandler<DuplicateCommand, string>
+    {
+        public ValueTask<string> Handle(DuplicateCommand command, CancellationToken ct) => new(""h2"");
+    }
+}
+";
+        var compilation = CreateCompilation(source);
+        var generator = new MediatorSourceGenerator();
+        var driver = CSharpGeneratorDriver.Create(generator);
+
+        driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out var diagnostics);
+
+        // ELM002 should be emitted for duplicate handler
+        Assert.Contains(diagnostics, d => d.Id == "ELM002" && d.Severity == DiagnosticSeverity.Error);
+    }
+
+    /// <summary>
+    /// GEN-002: Two command types with the SAME simple name in DIFFERENT namespaces must produce
+    /// distinct generated struct names to avoid CS0101 (duplicate type definition) in the generated code.
+    /// Before the fix, both would generate 'PingCommandHandlerNext' — a CS0101 conflict.
+    /// After the fix, they generate 'Ns1_PingCommandHandlerNext' and 'Ns2_PingCommandHandlerNext'.
+    /// </summary>
+    [Fact]
+    public void GEN002_SameNameCommandInDifferentNamespaces_GeneratesDistinctStructNames()
+    {
+        const string source = @"
+using EricksonLopez.Mediator;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace Ns1
+{
+    public class PingCommand : ICommand<string> { }
+    public class PingCommandHandler : ICommandHandler<PingCommand, string>
+    {
+        public ValueTask<string> Handle(PingCommand cmd, CancellationToken ct) => new(""pong1"");
+    }
 }
 
+namespace Ns2
+{
+    public class PingCommand : ICommand<string> { }
+    public class PingCommandHandler : ICommandHandler<PingCommand, string>
+    {
+        public ValueTask<string> Handle(PingCommand cmd, CancellationToken ct) => new(""pong2"");
+    }
+}
+";
+        var compilation = CreateCompilation(source);
+        var generator = new MediatorSourceGenerator();
+        var driver = CSharpGeneratorDriver.Create(generator);
 
+        driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var generatorDiagnostics);
 
+        // No generator diagnostics (ELM002 etc.) — both are valid distinct handlers
+        var generatorErrors = generatorDiagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).ToList();
+        Assert.Empty(generatorErrors);
 
+        // The generated code must compile without CS0101 (duplicate type definition)
+        var generatedSource = string.Join("\n", outputCompilation.SyntaxTrees.Select(t => t.ToString()));
+        var outputDiagnostics = outputCompilation.GetDiagnostics()
+            .Where(d => d.Severity == DiagnosticSeverity.Error)
+            .ToList();
 
+        // Must not contain CS0101 (duplicate type in namespace)
+        Assert.DoesNotContain(outputDiagnostics, d => d.Id == "CS0101");
 
-
+        // Verify the generated code contains namespace-qualified struct names
+        Assert.Contains("Ns1_PingCommandHandlerNext", generatedSource);
+        Assert.Contains("Ns2_PingCommandHandlerNext", generatedSource);
+    }
+}

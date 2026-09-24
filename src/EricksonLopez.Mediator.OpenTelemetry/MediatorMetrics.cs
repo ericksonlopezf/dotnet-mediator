@@ -9,7 +9,7 @@ namespace EricksonLopez.Mediator.OpenTelemetry;
 /// </summary>
 public static class MediatorMetrics
 {
-    private static readonly Meter Meter = new("EricksonLopez.Mediator", "1.0.0");
+    private static readonly Meter Meter = new("EricksonLopez.Mediator", "2.0.0");
 
     /// <summary>Total number of requests dispatched (commands + queries).</summary>
     private static readonly Counter<long> RequestCount =

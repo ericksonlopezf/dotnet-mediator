@@ -5,7 +5,7 @@ Ultra-high-performance, zero-allocation, compile-time monomorphized CQRS mediato
 [![CI](https://img.shields.io/github/actions/workflow/status/ericksonlopezf/dotnet-mediator/ci.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white&label=CI)](https://github.com/ericksonlopezf/dotnet-mediator/actions)
 [![Coverage](https://img.shields.io/codecov/c/github/ericksonlopezf/dotnet-mediator?style=for-the-badge&logo=codecov&logoColor=white)](https://codecov.io/gh/ericksonlopezf/dotnet-mediator)
 [![Quality Gate](https://img.shields.io/sonar/quality_gate/ericksonlopezf_dotnet-mediator?server=https%3A%2F%2Fsonarcloud.io&style=for-the-badge&logo=sonarcloud&logoColor=white)](https://sonarcloud.io/summary/new_code?id=ericksonlopezf_dotnet-mediator)
-[![Mutation Score](https://img.shields.io/badge/Mutation_Score-%E2%89%A598%25-brightgreen?style=for-the-badge&logo=stryker&logoColor=white)](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/docs/quality-gates.md)
+[![Mutation Score](https://img.shields.io/badge/Mutation_Score-%E2%89%A598%25-brightgreen?style=for-the-badge&logo=stryker&logoColor=white)](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/docs/mutation-score.md)
 [![NuGet](https://img.shields.io/nuget/v/EricksonLopez.Mediator?style=for-the-badge&logo=nuget&logoColor=white&color=512BD4)](https://www.nuget.org/packages/EricksonLopez.Mediator)
 [![NuGet Downloads](https://img.shields.io/nuget/dt/EricksonLopez.Mediator?style=for-the-badge&logo=nuget&logoColor=white&color=004880)](https://www.nuget.org/packages/EricksonLopez.Mediator)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/LICENSE)
@@ -14,7 +14,7 @@ Ultra-high-performance, zero-allocation, compile-time monomorphized CQRS mediato
 
 ---
 
-**EricksonLopez.Mediator** is an enterprise-grade, high-throughput in-process messaging infrastructure engineered specifically for modern .NET (`8.0`, `9.0`, and `10.0+`). It eliminates all runtime reflection, dynamic delegate allocations, and runtime assembly scanning by moving handler routing, dependency injection registration, and pipeline weaving entirely to **compile time** via **Roslyn Incremental Source Generators**. Leveraging unboxed `struct INext<TResponse>` continuations and strict CQRS type segregation (`ICommand<T>` vs `IQuery<T>`), it delivers sub-2-nanosecond dispatch latency, **0 bytes of heap allocation** across the pipeline hot path, and 100% Native AOT compatibility.
+**EricksonLopez.Mediator** is an enterprise-grade, high-throughput in-process messaging infrastructure engineered specifically for modern .NET (`8.0`, `9.0`, and `10.0+`). It eliminates all runtime reflection, dynamic delegate allocations, and runtime assembly scanning by moving handler routing, dependency injection registration, and pipeline weaving entirely to **compile time** via **Roslyn Incremental Source Generators**. Leveraging unboxed `struct INext<TResponse>` continuations and strict CQRS type segregation (`ICommand<T>` vs `IQuery<T>`), it delivers sub-2-nanosecond dispatch latency, **0 bytes of heap allocation on the synchronous completion hot path**, and 100% Native AOT compatibility.
 
 ---
 
@@ -24,7 +24,8 @@ Ultra-high-performance, zero-allocation, compile-time monomorphized CQRS mediato
 - [Key Features](#-key-features)
 - [Ecosystem](#-ecosystem)
 - [Documentation](#-documentation)
-  - [Interactive Showcase (Levels 00 to 13)](#-interactive-showcase-levels-00-to-13)
+  - [Step-by-Step Interactive Showcase (Levels 00 to 13)](#-step-by-step-interactive-showcase-levels-00-to-13)
+  - [Executable C# Showcase (Levels 0 to 11)](#-executable-c-showcase-levels-0-to-11)
   - [Technical Reference & Architecture Guides](#-technical-reference--architecture-guides)
 - [Installation](#-installation)
 - [Quick Start](#-quick-start)
@@ -36,6 +37,8 @@ Ultra-high-performance, zero-allocation, compile-time monomorphized CQRS mediato
   - [FluentValidation Pipeline](#fluentvalidation-pipeline)
   - [System.Threading.RateLimiting](#systemthreadingratelimiting)
   - [Roslyn Diagnostic Analyzers](#roslyn-diagnostic-analyzers)
+  - [Compile-Time Validation Attributes](#compile-time-validation-attributes)
+  - [Built-In Health Checks](#built-in-health-checks)
 - [Testing & Quality](#-testing--quality)
   - [Unit Testing with FakeMediator](#unit-testing-with-fakemediator)
   - [Isolated Behavior Testing with DelegateNext](#isolated-behavior-testing-with-delegatenext)
@@ -64,9 +67,9 @@ Traditional mediator implementations (such as MediatR v12 or reflection-based fr
 4. **Silent Architecture Drift & Late Runtime Failures**:
    Missing handlers, duplicate handler registrations, or misordered pipeline behaviors are only discovered at runtime when an endpoint is hit or during integration testing.
 
-### How `EricksonLopez.Mediator` Solves This
+### How EricksonLopez.Mediator Solves This
 
-- **0 Bytes Allocated in Hot Path**: Struct-based continuations (`struct INext<TResponse>`) allow the compiler to inline pipeline steps directly into a monomorphic execution chain, eliminating delegate boxing and heap closures.
+- **0 Bytes Allocated on the Synchronous Completion Hot Path**: Struct-based continuations (`struct INext<TResponse>`) allow the compiler to inline pipeline steps directly into a monomorphic execution chain, eliminating delegate boxing and heap closures.
 - **Compile-Time Switch Monomorphization**: Handlers and pipeline behaviors are discovered and stitched at build time by the Roslyn Incremental Source Generator into static C# pattern matches.
 - **Strict CQRS Segregation**: Dedicated `ICommand<TResponse>`, `IQuery<TResponse>`, `INotification`, and `IStreamRequest<TResponse>` interfaces enforce architectural intent in the C# type system.
 - **Instant IDE Diagnostics (`ELM001`–`ELM011`)**: Catch missing handlers, duplicate CQRS handlers, signature errors, and pipeline ordering conflicts directly in the editor as compile errors before code runs.
@@ -84,7 +87,7 @@ Traditional mediator implementations (such as MediatR v12 or reflection-based fr
 - **🔔 Flexible Domain Event Publishing**: Support for `Sequential` (default), `Parallel` (`Task.WhenAll`), and `SequentialAggregateExceptions` dispatch strategies via `[PublishStrategy]`.
 - **🌊 Reactive Asynchronous Streaming**: First-class support for `IStreamRequest<T>` returning `IAsyncEnumerable<T>` with zero pipeline overhead.
 - **🧪 Production-Ready Test Doubles**: Official `FakeMediator` and `DelegateNext<T>` eliminate mocking boilerplate in unit test suites.
-- **☁️ Zero-DI Serverless Ready**: `StaticMediator` allows direct handler dispatching in AWS Lambda, Azure Functions, or high-performance CLI tools without DI container overhead.
+- **☁️ Zero-DI Serverless Ready**: `StaticMediator` allows direct handler dispatching in AWS Lambda, Azure Functions, or high-performance CLI tools without DI container overhead. Use `SendCommand<TCommand, TResponse>()` and `SendQuery<TQuery, TResponse>()` for AOT-safe static dispatch.
 
 ---
 
@@ -95,13 +98,13 @@ Traditional mediator implementations (such as MediatR v12 or reflection-based fr
 | [`EricksonLopez.Mediator`](https://www.nuget.org/packages/EricksonLopez.Mediator) | [![NuGet](https://img.shields.io/nuget/v/EricksonLopez.Mediator?style=flat-square)](https://www.nuget.org/packages/EricksonLopez.Mediator) | Core interfaces (`ISender`, `IPublisher`, `IMediator`, `ICommand`, `IQuery`, `INotification`, `IStreamRequest`), struct continuations, and `StaticMediator`. |
 | [`EricksonLopez.Mediator.Generator`](https://www.nuget.org/packages/EricksonLopez.Mediator.Generator) | [![NuGet](https://img.shields.io/nuget/v/EricksonLopez.Mediator.Generator?style=flat-square)](https://www.nuget.org/packages/EricksonLopez.Mediator.Generator) | Roslyn Incremental Source Generator and Analyzer for compile-time monomorphized dispatch and diagnostics (`ELM001`–`ELM011`). |
 | [`EricksonLopez.Mediator.AspNetCore`](https://www.nuget.org/packages/EricksonLopez.Mediator.AspNetCore) | [![NuGet](https://img.shields.io/nuget/v/EricksonLopez.Mediator.AspNetCore?style=flat-square)](https://www.nuget.org/packages/EricksonLopez.Mediator.AspNetCore) | Minimal API endpoint routing extensions (`MapCommand`, `MapQuery`) connecting routes directly to mediator handlers. |
+| [`EricksonLopez.Mediator.Caching`](https://www.nuget.org/packages/EricksonLopez.Mediator.Caching) | [![NuGet](https://img.shields.io/nuget/v/EricksonLopez.Mediator.Caching?style=flat-square)](https://www.nuget.org/packages/EricksonLopez.Mediator.Caching) | High-performance query caching and invalidation pipeline behaviors with multi-tier caching and 100% Native AOT compatibility. |
+| [`EricksonLopez.Mediator.FluentValidation`](https://www.nuget.org/packages/EricksonLopez.Mediator.FluentValidation) | [![NuGet](https://img.shields.io/nuget/v/EricksonLopez.Mediator.FluentValidation?style=flat-square)](https://www.nuget.org/packages/EricksonLopez.Mediator.FluentValidation) | High-performance FluentValidation pipeline integration via `ValidationPipelineBehavior<T,R>` and `AddMediatorFluentValidation()`. |
 | [`EricksonLopez.Mediator.OpenTelemetry`](https://www.nuget.org/packages/EricksonLopez.Mediator.OpenTelemetry) | [![NuGet](https://img.shields.io/nuget/v/EricksonLopez.Mediator.OpenTelemetry?style=flat-square)](https://www.nuget.org/packages/EricksonLopez.Mediator.OpenTelemetry) | Zero-overhead distributed tracing (`ActivitySource`) and performance metrics (`Meter`) with pre-cached metadata. |
-| [`EricksonLopez.Mediator.Polly`](https://www.nuget.org/packages/EricksonLopez.Mediator.Polly) | [![NuGet](https://img.shields.io/nuget/v/EricksonLopez.Mediator.Polly?style=flat-square)](https://www.nuget.org/packages/EricksonLopez.Mediator.Polly) | Polly v8 resilience pipeline integration (`PollyResilienceBehavior` and `[UseResiliencePipeline]`). |
+| [`EricksonLopez.Mediator.Polly`](https://www.nuget.org/packages/EricksonLopez.Mediator.Polly) | [![NuGet](https://img.shields.io/nuget/v/EricksonLopez.Mediator.Polly?style=flat-square)](https://www.nuget.org/packages/EricksonLopez.Mediator.Polly) | ⚠️ **DEPRECATED (ADR-036)** — Direct Polly v8 integration; migrate to `EricksonLopez.Resilience.Mediator`. |
 | [`EricksonLopez.Mediator.RateLimiting`](https://www.nuget.org/packages/EricksonLopez.Mediator.RateLimiting) | [![NuGet](https://img.shields.io/nuget/v/EricksonLopez.Mediator.RateLimiting?style=flat-square)](https://www.nuget.org/packages/EricksonLopez.Mediator.RateLimiting) | High-throughput rate limiting pipeline behavior built on `System.Threading.RateLimiting`. |
 | [`EricksonLopez.Mediator.Result`](https://www.nuget.org/packages/EricksonLopez.Mediator.Result) | [![NuGet](https://img.shields.io/nuget/v/EricksonLopez.Mediator.Result?style=flat-square)](https://www.nuget.org/packages/EricksonLopez.Mediator.Result) | Result pattern abstraction (`IResultFactory<TResponse>`) bridging pipeline short-circuiting with `EricksonLopez.Result`. |
 | [`EricksonLopez.Mediator.Testing`](https://www.nuget.org/packages/EricksonLopez.Mediator.Testing) | [![NuGet](https://img.shields.io/nuget/v/EricksonLopez.Mediator.Testing?style=flat-square)](https://www.nuget.org/packages/EricksonLopez.Mediator.Testing) | Official in-memory `FakeMediator` and `DelegateNext` test doubles for isolated unit testing. |
-| [`EricksonLopez.Mediator.FluentValidation`](https://www.nuget.org/packages/EricksonLopez.Mediator.FluentValidation) | [![NuGet](https://img.shields.io/nuget/v/EricksonLopez.Mediator.FluentValidation?style=flat-square)](https://www.nuget.org/packages/EricksonLopez.Mediator.FluentValidation) | **Recommended** FluentValidation pipeline integration via `ValidationPipelineBehavior<T,R>` and `AddMediatorFluentValidation()`. |
-| [`EricksonLopez.Mediator.Validation`](https://www.nuget.org/packages/EricksonLopez.Mediator.Validation) | [![NuGet](https://img.shields.io/nuget/v/EricksonLopez.Mediator.Validation?style=flat-square)](https://www.nuget.org/packages/EricksonLopez.Mediator.Validation) | ⚠️ **DEPRECATED (ADR-033)** — Legacy validation package; migrate to `EricksonLopez.Mediator.FluentValidation`. |
 
 ---
 
@@ -109,7 +112,7 @@ Traditional mediator implementations (such as MediatR v12 or reflection-based fr
 
 > 🌐 **Official Documentation Hub:** [https://github.com/ericksonlopezf/dotnet-mediator/tree/main/docs](https://github.com/ericksonlopezf/dotnet-mediator/tree/main/docs)
 
-### 🎓 Interactive Showcase (Levels 00 to 13)
+### 🎓 Step-by-Step Interactive Showcase (Levels 00 to 13)
 
 | Level | Topic | Description |
 |---|---|---|
@@ -128,16 +131,47 @@ Traditional mediator implementations (such as MediatR v12 or reflection-based fr
 | [**Level 12**](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/docs/showcase/level-12-testing.md) | **Testing & Test Doubles** | Writing fast, reflection-free unit and integration tests using `FakeMediator` and `DelegateNext`. |
 | [**Level 13**](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/docs/showcase/level-13-diagnostics.md) | **Diagnostics, Tracing & Metrics** | Resolving Roslyn rules `ELM001`–`ELM011` and consuming OpenTelemetry activity sources. |
 
+### 🖥️ Executable C# Showcase (Levels 0 to 11)
+
+The **official living reference implementation** — fully compilable, runnable C# source demonstrating 100% of the public API:
+
+```bash
+dotnet run --project samples/EricksonLopez.Mediator.Samples/EricksonLopez.Mediator.Samples.csproj
+```
+
+| Level | File | Topic |
+|---|---|---|
+| Level 0 | [`Level0_Conceptual.cs`](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/samples/EricksonLopez.Mediator.Samples/Levels/Level0_Conceptual.cs) | Introduction & Philosophy |
+| Level 1 | [`Level1_QuickStart.cs`](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/samples/EricksonLopez.Mediator.Samples/Levels/Level1_QuickStart.cs) | Quick Start & First Handler |
+| Level 2 | [`Level2_FullConfig.cs`](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/samples/EricksonLopez.Mediator.Samples/Levels/Level2_FullConfig.cs) | Full Configuration & Global Behaviors |
+| Level 3 | [`Level3_RealUseCases.cs`](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/samples/EricksonLopez.Mediator.Samples/Levels/Level3_RealUseCases.cs) | Real Use Cases — CQRS + Events |
+| Level 4 | [`Level4_AdvancedIntegration.cs`](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/samples/EricksonLopez.Mediator.Samples/Levels/Level4_AdvancedIntegration.cs) | Advanced Integration — Result Pattern + MediatR Compat |
+| Level 5 | [`Level5_Processing.cs`](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/samples/EricksonLopez.Mediator.Samples/Levels/Level5_Processing.cs) | Processing — Parallel Events & Streaming |
+| Level 6 | [`Level6_ErrorHandling.cs`](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/samples/EricksonLopez.Mediator.Samples/Levels/Level6_ErrorHandling.cs) | Error Handling — Aggregation & Rate Limiting |
+| Level 7 | [`Level7_Scalability.cs`](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/samples/EricksonLopez.Mediator.Samples/Levels/Level7_Scalability.cs) | Scalability — Throughput & Multi-handler |
+| Level 8 | [`Level8_Customization.cs`](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/samples/EricksonLopez.Mediator.Samples/Levels/Level8_Customization.cs) | Customization — Lifetimes & Discovery |
+| Level 9 | [`Level9_Extensions.cs`](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/samples/EricksonLopez.Mediator.Samples/Levels/Level9_Extensions.cs) | Extensions — OTel, Caching, FluentValidation, Polly |
+| Level 10 | [`Level10_EnterpriseArchitecture.cs`](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/samples/EricksonLopez.Mediator.Samples/Levels/Level10_EnterpriseArchitecture.cs) | Enterprise Architecture & StaticMediator |
+| Level 11 | [`Level11_Testing.cs`](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/samples/EricksonLopez.Mediator.Samples/Levels/Level11_Testing.cs) | Testing — FakeMediator, DelegateNext & INotificationBehavior |
+
 ### 📖 Technical Reference & Architecture Guides
 
 - [**Architecture & Invariants**](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/docs/architecture.md) — Complete architectural blueprint, zero-allocation mechanics, and pipeline compilation models.
-- [**Architectural Decision Records (ADRs)**](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/docs/design-decisions.md) — Catalog of all 35 architectural decision records and systematic rejections.
+- [**Architectural Decision Records (ADRs)**](https://github.com/ericksonlopezf/dotnet-mediator/tree/main/docs/adr) — Catalog of all 38 architectural decision records and systematic rejections.
+- [**Technical Audit**](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/docs/audit.md) — Comprehensive technical audit, guarantees, and verification.
+- [**Competitive Audit**](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/docs/competitive-audit.md) — In-depth market comparison vs alternatives (MediatR, martinothamar/Mediator).
+- [**Features & Compatibility Matrix**](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/docs/features-matrix.md) — Target framework matrix, diagnostics, and feature support.
+- [**Cookbook & Production Recipes**](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/docs/cookbook.md) — 15 ready-to-use production recipes for enterprise CQRS architectures.
+- [**Public API Inventory**](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/docs/api-inventory.md) — Exhaustive matrix inventory of 100% of public types, contracts, behaviors, and extensions.
 - [**Public API Reference**](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/docs/api-reference.md) — Exhaustive Microsoft Learn-style reference for all public interfaces, structs, and methods.
-- [**Performance Benchmarks**](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/docs/benchmarks.md) — BenchmarkDotNet methodology, execution times, and allocation comparisons vs MediatR.
+- [**Functional Architecture Map**](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/docs/functional-map.md) — End-to-end component interaction flow, 6-layer architecture, and pipeline transitions.
+- [**Visual Diagrams**](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/docs/diagrams.md) — 8 complete Mermaid diagrams covering architecture, sequence, lifecycle, and resilience.
+- [**Showcase Specification**](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/docs/showcase-specification.md) — Reference specification for all progressive showcase levels and package matrix.
+- [**Performance Benchmarks Guide**](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/docs/benchmarks.md) — BenchmarkDotNet methodology, execution times, and allocation comparisons vs MediatR.
 - [**Compatibility & Matrix Guide**](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/docs/compatibility-matrix.md) — Target framework matrix (.NET 8.0, 9.0, 10.0) and Native AOT readiness per package.
 - [**Comparative Analysis**](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/docs/comparative-analysis.md) — In-depth architectural comparison against MediatR and martinothamar/Mediator.
 - [**Quality Gates & Analyzers**](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/docs/quality-gates.md) — Roslyn diagnostic enforcement, Stryker mutation testing, and Codecov thresholds.
-- [**Cookbook & Production Recipes**](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/docs/cookbook.md) — 10 ready-to-use production recipes for enterprise CQRS architectures.
+- [**Mutation Testing Score**](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/docs/mutation-score.md) — Stryker.NET mutation test score breakdown across all packages.
 - [**Best Practices & Anti-Patterns**](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/docs/best-practices.md) — Comprehensive guide on contract design, struct constraints, and handler lifetimes.
 - [**Troubleshooting & Diagnostics**](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/docs/troubleshooting.md) — Diagnostic rule codes (`ELM001`–`ELM011`) and step-by-step remediation procedures.
 - [**Migration Guide from MediatR**](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/docs/migration-guide.md) — Automated and manual migration strategies from reflection-based MediatR setups.
@@ -163,8 +197,8 @@ Or configure directly in your `.csproj`:
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="EricksonLopez.Mediator" Version="1.0.0" />
-  <PackageReference Include="EricksonLopez.Mediator.Generator" Version="1.0.0" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  <PackageReference Include="EricksonLopez.Mediator" Version="2.0.0" />
+  <PackageReference Include="EricksonLopez.Mediator.Generator" Version="2.0.0" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 </ItemGroup>
 ```
 
@@ -173,6 +207,9 @@ Or configure directly in your `.csproj`:
 ```bash
 # Minimal APIs Integration for ASP.NET Core
 dotnet add package EricksonLopez.Mediator.AspNetCore
+
+# In-Memory & Distributed Caching Integration
+dotnet add package EricksonLopez.Mediator.Caching
 
 # OpenTelemetry Tracing and Metrics
 dotnet add package EricksonLopez.Mediator.OpenTelemetry
@@ -279,6 +316,8 @@ using EricksonLopez.Mediator;
 var services = new ServiceCollection();
 
 // Automatically registers all handlers, behaviors, and generated monomorphic dispatchers
+// Registers IMediator, ISender, and IPublisher as Scoped by default (ADR-037)
+// Pass ServiceLifetime.Singleton for stateless background workers: services.AddEricksonLopezMediator(ServiceLifetime.Singleton);
 services.AddEricksonLopezMediator();
 
 var serviceProvider = services.BuildServiceProvider();
@@ -438,11 +477,11 @@ Integrate with `EricksonLopez.Result` via `IResultFactory<TResponse>` to short-c
 using EricksonLopez.Mediator.Result;
 using EricksonLopez.Result;
 
-public sealed class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+public sealed class ValidationPipelineBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
 {
     private readonly IResultFactory<TResponse>? _resultFactory;
 
-    public ValidationBehavior(IResultFactory<TResponse>? resultFactory = null)
+    public ValidationPipelineBehavior(IResultFactory<TResponse>? resultFactory = null)
     {
         _resultFactory = resultFactory;
     }
@@ -556,7 +595,10 @@ builder.Services.AddMediatorOpenTelemetry(options =>
 
 ### Polly v8 Resilience Policies
 
-Apply retry, circuit breaker, rate limiting, and timeout strategies declaratively via `EricksonLopez.Mediator.Polly`:
+> [!WARNING]
+> **MIGRATION NOTICE (ADR-036):** `EricksonLopez.Mediator.Polly` is maintained for existing Polly v8 integration. For new projects and Clean Architecture compliance without leaking Polly types into the Application layer, **migrate to [`EricksonLopez.Resilience.Mediator`](https://github.com/ericksonlopezf/resilience) from the `EricksonLopez.Resilience` ecosystem**. See [ADR-036](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/docs/adr/036-deprecation-mediator-polly-in-favor-of-resilience-mediator.md) for the full migration guide.
+
+The following example shows legacy usage for teams that have not yet migrated:
 
 ```csharp
 using EricksonLopez.Mediator.Polly;
@@ -624,7 +666,7 @@ builder.Services.AddMediatorRateLimiting();
 
 `EricksonLopez.Mediator.Generator` inspects your code at compile time and emits instant compiler diagnostics to prevent architectural bugs:
 
-| Diagnostic ID | Severity | Category | Description | Remediation |
+| Diagnostic ID | Severity | Category | Description | CodeFix / Remediation |
 |:---:|:---:|---|---|---|
 | **`ELM001`** | `Error` | Architecture | No handler found for request type (`ICommand` or `IQuery`). | Implement missing `ICommandHandler` or `IQueryHandler`, or add `[DiscoverHandlers]`. |
 | **`ELM002`** | `Error` | CQRS Invariant | Duplicate command handler detected for the same `ICommand<T>`. | Remove or consolidate duplicate handlers; exactly one handler is permitted per command. |
@@ -637,6 +679,55 @@ builder.Services.AddMediatorRateLimiting();
 | **`ELM009`** | `Error` | Streaming | No stream handler found for `IStreamRequest<T>`. | Implement missing `IStreamRequestHandler<TRequest, TResponse>`. |
 | **`ELM010`** | `Error` | Streaming | Multiple stream handlers found for the same `IStreamRequest<T>`. | Ensure only one stream handler exists per stream request type. |
 | **`ELM011`** | `Error` | Type Safety | Invalid stream handler method signature. | Ensure `Handle` method returns `IAsyncEnumerable<TResponse>`. |
+
+### Compile-Time Validation Attributes
+
+The core `EricksonLopez.Mediator` package includes built-in declarative validation attributes processed by the source generator at compile time. When `[ValidateRequest]` is applied to a request type, the generator emits a validation guard in the dispatch path — **no runtime reflection, no external dependencies, 100% AOT-safe**.
+
+```csharp
+[ValidateRequest]
+public sealed record CreateOrderCommand(
+    [ValidateNotEmpty] string CustomerId,
+    [ValidateRange(1.0, 1_000_000.0)] decimal Amount,
+    [ValidateNotNull, ValidateLength(1, 200)] string? Notes
+) : ICommand<Guid>;
+```
+
+| Attribute | Target | Description |
+|---|---|---|
+| `[ValidateRequest]` | Class / Struct | Enables compile-time validation code generation for the decorated request type |
+| `[ValidateNotNull]` | Property / Field / Parameter | Validates the value is not `null` |
+| `[ValidateNotEmpty]` | Property / Field / Parameter | Validates the string is not `null` or whitespace |
+| `[ValidateLength(min, max)]` | Property / Field / Parameter | Validates string length is within `[min, max]` |
+| `[ValidateRange(min, max)]` | Property / Field / Parameter | Validates a numeric value is within `[min, max]` |
+| `[ValidateRegex(pattern)]` | Property / Field / Parameter | Validates the string matches the specified regular expression |
+
+Validation failures throw `MediatorValidationException` containing an `IReadOnlyList<string> Errors` collection with all failing constraint messages.
+
+> [!NOTE]
+> These attributes provide lightweight, compile-time-generated validation in the core package. For rich rule-based validation using validators, FluentValidation expressions, and custom validators, use [`EricksonLopez.Mediator.FluentValidation`](#fluentvalidation-pipeline) instead.
+
+### Built-In Health Checks
+
+`EricksonLopez.Mediator` ships with a built-in mediator readiness health check that integrates with ASP.NET Core's `IHealthChecksBuilder`:
+
+```csharp
+// Register in Program.cs
+builder.Services.AddHealthChecks()
+    .AddMediatorHealthCheck();
+
+// Expose the health endpoint
+app.MapHealthChecks("/health");
+```
+
+`MediatorHealthCheck` verifies that the mediator can resolve its core dispatch infrastructure and reports `Healthy` or `Unhealthy` accordingly. The check is registered with the `"mediator"` tag, allowing health endpoints to filter by tag:
+
+```csharp
+app.MapHealthChecks("/health/mediator", new HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("mediator")
+});
+```
 
 ---
 
@@ -667,7 +758,7 @@ public sealed class OrderServiceTests
         // Act
         var resultId = await service.PlaceOrderAsync("CUST-99", 250.00m);
 
-        // Assert
+        // Assert: Fluent assertions API
         Assert.Equal(expectedOrderId, resultId);
         fakeMediator.ShouldHaveReceived<CreateOrderCommand>(c => c.CustomerId == "CUST-99" && c.Amount == 250.00m);
         Assert.Equal(1, fakeMediator.ReceivedCount<CreateOrderCommand>());
@@ -714,12 +805,28 @@ The codebase enforces strict DevSecOps quality gates verified via GitHub Actions
 - **100% Test Pass Rate**: Verified across .NET 8.0 LTS, .NET 9.0 STS, and .NET 10.0 LTS.
 - **Native AOT Smoke Testing**: Automated compilation and test execution under `PublishAot=true` with zero trim warnings (`TreatWarningsAsErrors=true`).
 - **Public API Analyzers**: Public surface changes guarded by `Microsoft.CodeAnalysis.PublicApiAnalyzers` (`RS0016`/`RS0017`).
-- **Stryker.NET Mutation Testing Gate**: Hard threshold requiring $\ge 98\%$ mutation score to guarantee regression resistance:
+- **Multi-Framework Runner Support**: Test doubles work seamlessly across **xUnit**, **NUnit**, and **MSTest** without reflection or dynamic proxies.
+- **Asynchronous Execution Guarantees**: Handlers returning `ValueTask<T>` prevent thread-pool starvation and eliminate deadlock risks across synchronization contexts via internal `ConfigureAwait(false)`.
+- **Stryker.NET Mutation Quality Gate**: Hard threshold requiring $\ge 98\%$ mutation score across runtime packages:
+
+| Project | Total Mutants | Mutants Killed | Mutants Survived | Mutation Score | Gate Status |
+|---|---|---|---|:---:|:---:|
+| `EricksonLopez.Mediator` (Core) | 48 | 48 | 0 | **100.00%** | ✅ HIGH |
+| `EricksonLopez.Mediator.Testing` | 52 | 52 | 0 | **100.00%** | ✅ HIGH |
+| `EricksonLopez.Mediator.OpenTelemetry` | 58 | 58 | 0 | **100.00%** | ✅ HIGH |
+| `EricksonLopez.Mediator.Polly` | 21 | 21 | 0 | **100.00%** | ✅ HIGH |
+| `EricksonLopez.Mediator.FluentValidation` | 19 | 19 | 0 | **100.00%** | ✅ HIGH |
+| `EricksonLopez.Mediator.RateLimiting` | 11 | 11 | 0 | **100.00%** | ✅ HIGH |
+| `EricksonLopez.Mediator.AspNetCore` | 8 | 8 | 0 | **100.00%** | ✅ HIGH |
+| `EricksonLopez.Mediator.Result` | 0 | 0 | 0 | **100.00%** | ✅ HIGH |
+| `EricksonLopez.Mediator.Generator` | 877 | 798 | 79 | **91.00%+** | ✅ PASS |
 
 ```bash
 # Run full mutation testing suite
 dotnet stryker --config-file stryker-config.json
 ```
+
+See the full [Mutation Testing Score Report](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/docs/mutation-score.md) for detailed metrics and configuration.
 
 ---
 
@@ -755,49 +862,53 @@ All benchmarks are measured using **BenchmarkDotNet v0.15.8** on modern x64 arch
 
 ### Target Framework & Native AOT Compatibility
 
-| Package | .NET 8.0 LTS | .NET 9.0 STS | .NET 10.0 LTS | .NET Standard 2.0 | Native AOT Trimming | Notes |
-|---|:---:|:---:|:---:|:---:|:---:|---|
-| `EricksonLopez.Mediator` | ✅ | ✅ | ✅ | — | ✅ 100% Compatible | Zero reflection in hot path; 0 trim warnings |
-| `EricksonLopez.Mediator.Generator` | — | — | — | ✅ | N/A | Build-time Roslyn Incremental Analyzer |
-| `EricksonLopez.Mediator.AspNetCore` | ✅ | ✅ | ✅ | — | ⚠️ Configurable | Minimal API route delegates use standard ASP.NET Core binding |
-| `EricksonLopez.Mediator.OpenTelemetry` | ✅ | ✅ | ✅ | — | ✅ 100% Compatible | Pre-cached type metadata in closed-generic static fields (ADR-030) |
-| `EricksonLopez.Mediator.Polly` | ✅ | ✅ | ✅ | — | ⚠️ Compatible | Explicit strategy registration recommended under aggressive trimming |
-| `EricksonLopez.Mediator.RateLimiting` | ✅ | ✅ | ✅ | — | ✅ 100% Compatible | Built directly on `System.Threading.RateLimiting` |
-| `EricksonLopez.Mediator.Result` | ✅ | ✅ | ✅ | — | ✅ 100% Compatible | Zero-allocation struct result factory bridging |
-| `EricksonLopez.Mediator.Testing` | ✅ | ✅ | ✅ | — | Test Doubles | In-memory `FakeMediator` for test projects |
-| `EricksonLopez.Mediator.FluentValidation` | ✅ | ✅ | ✅ | — | ⚠️ Compatible | Behavior is AOT-safe; assembly scanning uses `[RequiresUnreferencedCode]` |
-| `EricksonLopez.Mediator.Validation` | ✅ | ✅ | ✅ | — | ❌ Deprecated | ⚠️ Deprecated (ADR-033); migrate to `FluentValidation` |
+| Package | .NET 8.0 LTS | .NET 9.0 STS | .NET 10.0 LTS | .NET Standard 2.0 | NativeAOT | Trimmable | Notes |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|---|
+| `EricksonLopez.Mediator` | ✅ | ✅ | ✅ | — | ✅ Compatible | ✅ Trimmable | Zero reflection in hot path; 0 trim warnings |
+| `EricksonLopez.Mediator.Generator` | — | — | — | ✅ | N/A | N/A | Build-time Roslyn Incremental Source Generator & Analyzer |
+| `EricksonLopez.Mediator.AspNetCore` | ✅ | ✅ | ✅ | — | ⚠️ Partial | ⚠️ Partial | **AOT-001**: `MapCommand`/`MapQuery` use reflection for Minimal API route binding |
+| `EricksonLopez.Mediator.Caching` | ✅ | ✅ | ✅ | — | ✅ Compatible | ✅ Trimmable | High-performance query caching and invalidation with zero reflection |
+| `EricksonLopez.Mediator.FluentValidation` | ✅ | ✅ | ✅ | — | ⚠️ Compatible | ⚠️ Compatible | Behavior execution is AOT-safe; dynamic assembly scanning uses `[RequiresUnreferencedCode]` |
+| `EricksonLopez.Mediator.OpenTelemetry` | ✅ | ✅ | ✅ | — | ✅ Compatible | ✅ Trimmable | Pre-cached type metadata in closed-generic static fields (ADR-030) |
+| `EricksonLopez.Mediator.Polly` | ✅ | ✅ | ✅ | — | ⚠️ Deprecated | ⚠️ Deprecated | Deprecated (ADR-036); migrate to `EricksonLopez.Resilience.Mediator` |
+| `EricksonLopez.Mediator.RateLimiting` | ✅ | ✅ | ✅ | — | ✅ Compatible | ✅ Trimmable | Built directly on `System.Threading.RateLimiting` |
+| `EricksonLopez.Mediator.Result` | ✅ | ✅ | ✅ | — | ✅ Compatible | ✅ Trimmable | Zero-allocation struct result factory bridging |
+| `EricksonLopez.Mediator.Testing` | ✅ | ✅ | ✅ | — | Test Doubles | Test Doubles | In-memory `FakeMediator` and `DelegateNext` for unit test projects |
 
 ### Notification Publish Strategies Matrix
 
 | Strategy | Ordering | Concurrency Model | Exception Handling | Recommended Scenario |
 |---|---|---|---|---|
-| **`Sequential`** *(Default)* | Sequential | Single thread | Fails fast on first exception | Default business workflows where order matters |
+| **`Sequential`** *(Default)* | Sequential | Single thread | Fails fast on first exception | Default business workflows where execution order matters |
 | **`Parallel`** | Non-deterministic | Concurrent (`Task.WhenAll`) | Aggregates all exceptions | High-throughput notification fan-out |
 | **`SequentialAggregateExceptions`** | Sequential | Single thread | Collects all exceptions, runs all handlers | Critical audit and multi-step notification pipelines |
+
+> 🛡️ **Target Framework & Lifecycle Policy**: First-class multi-targeting across `.NET 10` (Modern LTS), `.NET 9` (STS), and `.NET 8` (Enterprise LTS) — along with `.NET Standard 2.0` for Roslyn analyzers and source generators — is actively maintained. Full backward compatibility is guaranteed until Microsoft officially reaches End-of-Life (EOL) for .NET 8 and .NET 9 in November 2026, at which milestone the ecosystem will transition to .NET 10 and .NET 11.
 
 ---
 
 ## 🏛️ Architecture & Design Principles
 
-### Compile-Time vs Runtime Dispatch Execution
+### Compile-Time Monomorphization Pipeline & Execution Flow
 
 ```mermaid
-graph LR
-    subgraph "Compile Time (Roslyn Incremental Generator)"
-        Code["Commands, Queries, Handlers, Behaviors"] --> SG["EricksonLopez.Mediator.Generator"]
-        SG --> GM["GeneratedMediator.g.cs (Switch Dispatch)"]
-        SG --> DI["GeneratedMediatorExtensions.g.cs (DI Wiring)"]
-        SG --> DIAG["Roslyn Diagnostics (ELM001-ELM011)"]
+flowchart TD
+    Client["Client / Minimal API / Controller"] -->|Send(request, ct)| Sender["ISender / IMediator"]
+    Sender -->|Compile-Time Monomorphized Switch| Dispatcher["GeneratedMediator.g.cs"]
+    
+    subgraph Pipeline["Zero-Allocation Pipeline (struct INext&lt;TResponse&gt;)"]
+        Dispatcher --> B1["Behavior 0: OpenTelemetry Tracing"]
+        B1 -->|next.InvokeAsync()| B2["Behavior 1: Rate Limiting"]
+        B2 -->|next.InvokeAsync()| B3["Behavior 2: Caching (Query)"]
+        B3 -->|Cache Hit| FastReturn["Return ValueTask&lt;TResponse&gt; (0 Alloc)"]
+        B3 -->|Cache Miss / Command| B4["Behavior 3: FluentValidation"]
+        B4 -->|Validation Failure| ShortCircuit["IResultFactory.CreateFailure()"]
+        B4 -->|Validation Pass| Handler["Concrete ICommandHandler / IQueryHandler"]
     end
-
-    subgraph "Runtime Execution (0 Allocations / Native AOT)"
-        Caller["Caller / Minimal API / Controller"] --> ISender["ISender / IMediator"]
-        ISender --> GM
-        GM --> Pipeline["Struct-based INext<T> Pipeline"]
-        Pipeline --> Handler["Concrete ICommandHandler / IQueryHandler"]
-        Handler --> Response["ValueTask<TResponse>"]
-    end
+    
+    Handler -->|ValueTask&lt;TResponse&gt;| Caller["Return to Caller"]
+    ShortCircuit -->|Failure Result| Caller
+    FastReturn --> Caller
 ```
 
 ### Request / Response Pipeline Sequence Flow
@@ -901,7 +1012,22 @@ public ValueTask<TResponse> Handle<TNext>(TRequest request, TNext next, Cancella
 ```csharp
 [assembly: UseGlobalBehavior(typeof(TracingBehavior<,>), order: 0)]    // Outermost
 [assembly: UseGlobalBehavior(typeof(LoggingBehavior<,>), order: 1)]    // Second
-[assembly: UseGlobalBehavior(typeof(ValidationBehavior<,>), order: 2)] // Innermost
+[assembly: UseGlobalBehavior(typeof(ValidationPipelineBehavior<,>), order: 2)] // Innermost
+```
+
+### 4. Minimal API Route Binding under Native AOT (`AOT-001`)
+
+**Symptom:** Warnings `IL2026: Using member RequiresUnreferencedCode` when using `app.MapCommand<TCommand, TResponse>()` or `app.MapQuery<TQuery, TResponse>()` with Native AOT compilation.  
+**Cause:** ASP.NET Core Minimal API endpoint route delegate binding relies on reflection internally.  
+**Remediation:** In strictly trimmed Native AOT applications requiring zero trim warnings, dispatch through standard typed Minimal API delegate lambdas injecting `ISender`:
+
+```csharp
+// 100% Native AOT-safe explicit delegate mapping
+app.MapPost("/api/orders", static async (CreateOrderCommand command, ISender sender, CancellationToken ct) =>
+{
+    var id = await sender.Send(command, ct);
+    return Results.Created($"/api/orders/{id}", id);
+});
 ```
 
 ---
@@ -943,7 +1069,7 @@ Contributions, issues, and feature requests are welcome!
    ```
 5. **Run Stryker Mutation Testing**:
    ```bash
-   dotnet stryker --config-file stryker-config-unit.json
+   dotnet stryker --config-file stryker-config.json
    ```
 
 Please review our [Contributing Guide](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/CONTRIBUTING.md), [Code of Conduct](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/CODE_OF_CONDUCT.md), and [Security Policy](https://github.com/ericksonlopezf/dotnet-mediator/blob/main/SECURITY.md) before submitting pull requests.

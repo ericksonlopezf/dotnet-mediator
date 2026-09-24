@@ -35,19 +35,36 @@ The repository uses `Microsoft.CodeAnalysis.PublicApiAnalyzers` to prevent accid
 
 ## 3. Native AOT & Trimming Gates
 
-Every push and pull request runs `EricksonLopez.Mediator.AotTest` with `PublishAot=true`:
+Every push and pull request runs `tests/EricksonLopez.Mediator.AotSmokeTest/EricksonLopez.Mediator.AotSmokeTest.csproj` with `PublishAot=true`:
 - Zero `IL2026`, `IL2072`, `IL2091`, or `IL3050` trimming warnings allowed across all runtime packages (`TreatWarningsAsErrors=true`).
 - Verifies that all commands, queries, pipelines, and notification handlers execute natively on bare metal without JIT compilation.
 
 ---
 
-## 4. Code Coverage, SonarCloud & Mutation Gates
+## 4. Benchmark Regression Quality Gate
+
+Enforced via `scripts/verify-benchmark-gate.ps1` in `benchmarks.yml` and `weekly-benchmarks.yml`:
+- **Heap Invariant (Zero-Allocation)**: Hot-path combinators matching `^(Bind|Map|Tap|ValidateAll|Success|Failure|ZeroAlloc|.*_TState.*)` must strictly allocate `0 B` heap memory.
+- **Latency Threshold**: Mean execution latency must not regress by more than `+5.0%` compared to `benchmarks/results/baseline.json`.
+- Automated regression reports are published directly as GitHub Actions step summaries.
+
+---
+
+## 5. Code Coverage, SonarCloud & Mutation Gates
 
 - **Unit Testing Pass Rate**: 100% pass rate required across all target frameworks (.NET 8.0, .NET 9.0, .NET 10.0).
 - **Code Coverage**: Collected via `coverlet.collector` (OpenCover format) and uploaded to Codecov with per-PR quality status checks.
 - **Static Code Analysis**: Integrated with SonarCloud via `dotnet-sonarscanner` in `dotnet-build-test.yml`.
 - **Mutation Testing Gate (Stryker.NET)**:
+  - Enforced by `scripts/verify-mutation-gate.js` evaluating each package's `mutation-report.json`.
   - **High**: $\ge 100\%$ — Excellent mutation resistance
   - **Low**: $\ge 98\%$ — Acceptable score
   - **Warning**: $\ge 95\%$ — Approaching break threshold
   - **Break**: $< 95\%$ — Hard gate failure (blocks release and commits status `failure`)
+
+---
+
+## 6. Architectural Compliance Quality Gate
+
+Validated via `scripts/verify-compliance.ps1`:
+- Verifies XML doc coverage, file structure conventions, single-handler constraints, and compiler warnings across all projects.

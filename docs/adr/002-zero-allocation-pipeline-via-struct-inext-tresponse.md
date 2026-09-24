@@ -1,5 +1,11 @@
 # ADR-002: Zero-Allocation Pipeline via Struct INext<TResponse>
 
+## Status
+Accepted
+
+## Date
+2026-09-04
+
 **Status**: Accepted
 
 ### Context

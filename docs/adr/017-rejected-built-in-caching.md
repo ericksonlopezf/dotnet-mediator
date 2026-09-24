@@ -1,5 +1,11 @@
 # ADR-017: REJECTED — Built-in Caching
 
+## Status
+Rejected
+
+## Date
+2026-09-04
+
 **Status**: Accepted (Rejection)
 
 ### Context
@@ -16,3 +22,5 @@ Some users want automatic caching of query results via the mediator.
 
 ---
 
+> [!NOTE]
+> While caching remains excluded from the core dispatcher package, an official opt-in extension package `EricksonLopez.Mediator.Caching` was introduced via [ADR-038](038-response-caching-pipeline-behavior-package.md) to provide declarative response caching and stampede protection.

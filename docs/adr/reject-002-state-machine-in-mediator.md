@@ -1,4 +1,11 @@
 # Architectural Decision Record: REJECT-002
+
+## Status
+Rejected
+
+## Date
+2026-09-04
+
 ## Rejection of Stateful Workflow and Saga Management inside Mediator
 
 ### Status
