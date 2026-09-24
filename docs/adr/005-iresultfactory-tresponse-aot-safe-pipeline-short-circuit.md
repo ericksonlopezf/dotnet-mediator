@@ -1,5 +1,11 @@
 # ADR-005: IResultFactory<TResponse> — AOT-Safe Pipeline Short-Circuit
 
+## Status
+Accepted
+
+## Date
+2026-09-04
+
 **Status**: Accepted
 
 ### Context

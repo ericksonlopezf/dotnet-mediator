@@ -36,6 +36,28 @@ public class StaticMediatorTests
     }
 
     [Fact]
+    public async Task SendCommand_PolymorphicDispatchViaInterface_DispatchesSuccessfully()
+    {
+        StaticMediator.Reset();
+        StaticMediator.RegisterCommandHandler(new StaticPingCommandHandler());
+
+        ICommand<string> cmd = new StaticPingCommand("Polymorphic");
+        var result = await StaticMediator.SendCommand<ICommand<string>, string>(cmd, CancellationToken.None);
+        result.Should().Be("StaticPong: Polymorphic");
+    }
+
+    [Fact]
+    public async Task SendQuery_PolymorphicDispatchViaInterface_DispatchesSuccessfully()
+    {
+        StaticMediator.Reset();
+        StaticMediator.RegisterQueryHandler(new StaticGetQueryHandler());
+
+        IQuery<int> qry = new StaticGetQuery(5);
+        var result = await StaticMediator.SendQuery<IQuery<int>, int>(qry, CancellationToken.None);
+        result.Should().Be(50);
+    }
+
+    [Fact]
     public async Task Publish_RegisteredNotificationWithoutDI_DispatchesSuccessfully()
     {
         StaticMediator.Reset();
@@ -103,8 +125,10 @@ public class StaticMediatorTests
         handler.ReceivedToken.Should().Be(cts.Token);
     }
 
+    // FIX CONC-002: A pre-cancelled token now throws OperationCanceledException BEFORE handler invocation.
+    // This test verifies the new behaviour matches GeneratedMediator's ThrowIfCancellationRequested contract.
     [Fact]
-    public async Task Publish_WithPreCancelledCancellationToken_PassesCancelledTokenToHandler()
+    public async Task Publish_WithPreCancelledCancellationToken_ThrowsOperationCanceledException()
     {
         StaticMediator.Reset();
         var handler = new StaticCancellableNotificationHandler();
@@ -112,9 +136,16 @@ public class StaticMediatorTests
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
-        await StaticMediator.Publish(new StaticNotification("PreCancelledCheck"), cts.Token);
+        // CONC-002: Should throw before reaching the handler
+        var act = async () => await StaticMediator.Publish(new StaticNotification("PreCancelledCheck"), cts.Token).AsTask();
+        await act.Should().ThrowAsync<OperationCanceledException>();
 
-        handler.ReceivedToken.IsCancellationRequested.Should().BeTrue();
+        // Handler was never invoked — if it had been called with the pre-cancelled token,
+        // IsCancellationRequested would be true. We verify this property because CancellationToken
+        // struct equality is unreliable in assertions (WaitHandle access creates OS handles that
+        // change structural equality even for logically equivalent tokens).
+        handler.ReceivedToken.IsCancellationRequested.Should().BeFalse(
+            "handler should not be called when token is pre-cancelled (CONC-002)");
     }
 
     [Fact]
@@ -141,12 +172,34 @@ public class StaticMediatorTests
     }
 
     [Fact]
+    public async Task SendCommand_UnregisteredPolymorphicCommand_ThrowsInvalidOperationException()
+    {
+        StaticMediator.Reset();
+        ICommand<string> cmd = new StaticPingCommand("PolymorphicFail");
+        var act = async () => await StaticMediator.SendCommand<ICommand<string>, string>(cmd).AsTask();
+        var ex = await act.Should().ThrowAsync<InvalidOperationException>();
+        ex.Which.Message.Should().Contain(typeof(ICommand<string>).FullName!);
+        ex.Which.Message.Should().Contain("No static command handler registered for");
+    }
+
+    [Fact]
     public async Task SendQuery_UnregisteredQuery_ThrowsInvalidOperationException()
     {
         StaticMediator.Reset();
         var act = async () => await StaticMediator.SendQuery<StaticGetQuery, int>(new StaticGetQuery(99)).AsTask();
         var ex = await act.Should().ThrowAsync<InvalidOperationException>();
         ex.Which.Message.Should().Contain(typeof(StaticGetQuery).FullName!);
+        ex.Which.Message.Should().Contain("No static query handler registered for");
+    }
+
+    [Fact]
+    public async Task SendQuery_UnregisteredPolymorphicQuery_ThrowsInvalidOperationException()
+    {
+        StaticMediator.Reset();
+        IQuery<int> qry = new StaticGetQuery(99);
+        var act = async () => await StaticMediator.SendQuery<IQuery<int>, int>(qry).AsTask();
+        var ex = await act.Should().ThrowAsync<InvalidOperationException>();
+        ex.Which.Message.Should().Contain(typeof(IQuery<int>).FullName!);
         ex.Which.Message.Should().Contain("No static query handler registered for");
     }
 
@@ -192,11 +245,121 @@ public class StaticMediatorTests
             cmdResult.Should().Be($"StaticPong: Msg_{i}");
             qryResult.Should().Be(i * 10);
         });
-
         var allTasks = Task.WhenAll(tasks);
         var completedTask = await Task.WhenAny(allTasks, Task.Delay(timeout, CancellationToken.None));
 
         completedTask.Should().Be(allTasks, "concurrent dispatch should complete within 10 seconds without deadlocks");
         await allTasks; // propagate any exceptions
     }
+
+    // ────────────────────────────────────────────────────────────────────────────────
+    // REGRESSION TESTS for CONC-001, CONC-002, CONC-003 audit fixes
+    // ────────────────────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// CONC-001: Notification handlers must execute in FIFO registration order.
+    /// The fix changed ConcurrentBag (non-deterministic) to ConcurrentQueue (strict FIFO).
+    /// </summary>
+    [Fact]
+    public async Task Publish_MultipleHandlers_ExecutedInFifoRegistrationOrder()
+    {
+        StaticMediator.Reset();
+        var order = new System.Collections.Concurrent.ConcurrentQueue<int>();
+
+        StaticMediator.RegisterNotificationHandler(new OrderedNotificationHandler(1, order));
+        StaticMediator.RegisterNotificationHandler(new OrderedNotificationHandler(2, order));
+        StaticMediator.RegisterNotificationHandler(new OrderedNotificationHandler(3, order));
+
+        await StaticMediator.Publish(new StaticNotification("OrderTest"), CancellationToken.None);
+
+        var executionOrder = order.ToArray();
+        executionOrder.Should().Equal([1, 2, 3], "handlers must execute in FIFO registration order (CONC-001 fix)");
+        StaticMediator.Reset();
+    }
+
+    /// <summary>
+    /// CONC-002: SendCommand with pre-cancelled token throws OperationCanceledException before dispatch.
+    /// </summary>
+    [Fact]
+    public async Task SendCommand_PreCancelledToken_ThrowsBeforeHandlerInvocation()
+    {
+        StaticMediator.Reset();
+        // Register the standard handler — it WOULD return a value if reached.
+        // With pre-cancellation, it must NOT be reached at all.
+        StaticMediator.RegisterCommandHandler(new StaticPingCommandHandler());
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        var act = async () => await StaticMediator.SendCommand<StaticPingCommand, string>(
+            new StaticPingCommand("Test"), cts.Token).AsTask();
+
+        // CONC-002: The exception proves ThrowIfCancellationRequested() fired before handler dispatch.
+        await act.Should().ThrowAsync<OperationCanceledException>("CONC-002: pre-cancelled token must throw before dispatch");
+        StaticMediator.Reset();
+    }
+
+    /// <summary>
+    /// CONC-002: SendQuery with pre-cancelled token throws OperationCanceledException before dispatch.
+    /// </summary>
+    [Fact]
+    public async Task SendQuery_PreCancelledToken_ThrowsBeforeHandlerInvocation()
+    {
+        StaticMediator.Reset();
+        // Register the standard handler — it WOULD return a value if reached.
+        // With pre-cancellation, it must NOT be reached at all.
+        StaticMediator.RegisterQueryHandler(new StaticGetQueryHandler());
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        var act = async () => await StaticMediator.SendQuery<StaticGetQuery, int>(
+            new StaticGetQuery(42), cts.Token).AsTask();
+
+        // CONC-002: The exception proves ThrowIfCancellationRequested() fired before handler dispatch.
+        await act.Should().ThrowAsync<OperationCanceledException>("CONC-002: pre-cancelled token must throw before dispatch");
+        StaticMediator.Reset();
+    }
+
+    /// <summary>
+    /// CONC-003: If the first notification handler throws, subsequent handlers are not called.
+    /// This is documented behaviour for StaticMediator (unlike DI-based SequentialAggregateExceptions strategy).
+    /// </summary>
+    [Fact]
+    public async Task Publish_FirstHandlerThrows_SubsequentHandlersNotInvoked()
+    {
+        StaticMediator.Reset();
+        var handler2 = new StaticNotificationHandler();
+        StaticMediator.RegisterNotificationHandler(new ThrowingNotificationHandler());
+        StaticMediator.RegisterNotificationHandler(handler2);
+
+        var act = async () => await StaticMediator.Publish(new StaticNotification("ExceptionTest"), CancellationToken.None).AsTask();
+        await act.Should().ThrowAsync<InvalidOperationException>("first handler throws");
+
+        // CONC-003: Second handler was NOT called — this is documented behaviour
+        handler2.HandledCount.Should().Be(0, "CONC-003: exception in first handler stops propagation to subsequent handlers");
+        StaticMediator.Reset();
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────────
+// Test helpers for regression tests added during MEGA-AUDIT
+// ─────────────────────────────────────────────────────────────────────────────────
+// IMPORTANT: These helpers must NOT implement ICommandHandler<StaticPingCommand,string>
+// or IQueryHandler<StaticGetQuery,int> directly — that would register a second handler
+// for those types, causing ELM002/ELM003 (duplicate handler) from the source generator.
+// See: the CONC-002 tests use StaticPingCommandHandler/StaticGetQueryHandler directly.
+
+internal sealed class OrderedNotificationHandler(int index, System.Collections.Concurrent.ConcurrentQueue<int> order)
+    : INotificationHandler<StaticNotification>
+{
+    public ValueTask Handle(StaticNotification notification, CancellationToken cancellationToken)
+    {
+        order.Enqueue(index);
+        return ValueTask.CompletedTask;
+    }
+}
+
+internal sealed class ThrowingNotificationHandler : INotificationHandler<StaticNotification>
+{
+    public ValueTask Handle(StaticNotification notification, CancellationToken cancellationToken)
+        => throw new InvalidOperationException("Deliberate failure in first handler");
 }

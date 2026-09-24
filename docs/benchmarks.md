@@ -50,5 +50,5 @@ Host / Job: .NET 10.0, RyuJIT AVX-512
 To run the benchmark suite locally:
 
 ```bash
-dotnet run -c Release --project tests/EricksonLopez.Mediator.Benchmarks/EricksonLopez.Mediator.Benchmarks.csproj
+dotnet run -c Release --project benchmarks/EricksonLopez.Mediator.Benchmarks/EricksonLopez.Mediator.Benchmarks.csproj
 ```

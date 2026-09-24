@@ -13,23 +13,22 @@ using Xunit;
 
 namespace EricksonLopez.Mediator.Polly.Tests;
 
-public record PollyPingCommand(string Value) : ICommand<string>;
-public class PollyPingCommandHandler : ICommandHandler<PollyPingCommand, string>
-{
-    public ValueTask<string> Handle(PollyPingCommand command, CancellationToken cancellationToken)
-        => ValueTask.FromResult("PollyPong: " + command.Value);
-}
-
-[UseResiliencePipeline("CustomKey")]
-public record PollyKeyedCommand(string Value) : ICommand<string>;
-public class PollyKeyedCommandHandler : ICommandHandler<PollyKeyedCommand, string>
-{
-    public ValueTask<string> Handle(PollyKeyedCommand command, CancellationToken cancellationToken)
-        => ValueTask.FromResult("KeyedPong: " + command.Value);
-}
-
 public class PollyBehaviorTests
 {
+    public sealed record PollyPingCommand(string Value) : ICommand<string>;
+    public sealed class PollyPingCommandHandler : ICommandHandler<PollyPingCommand, string>
+    {
+        public ValueTask<string> Handle(PollyPingCommand command, CancellationToken cancellationToken)
+            => ValueTask.FromResult("PollyPong: " + command.Value);
+    }
+
+    [UseResiliencePipeline("CustomKey")]
+    public sealed record PollyKeyedCommand(string Value) : ICommand<string>;
+    public sealed class PollyKeyedCommandHandler : ICommandHandler<PollyKeyedCommand, string>
+    {
+        public ValueTask<string> Handle(PollyKeyedCommand command, CancellationToken cancellationToken)
+            => ValueTask.FromResult("KeyedPong: " + command.Value);
+    }
     [Fact]
     public async Task Handle_WithoutPipeline_ExecutesNormally()
     {

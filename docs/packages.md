@@ -26,7 +26,7 @@ Roslyn Incremental Source Generator and Analyzer. Analyzes your project syntax t
 - **AOT Readiness**: N/A (Build-time analyzer)
 
 ```xml
-<PackageReference Include="EricksonLopez.Mediator.Generator" Version="1.0.0" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+<PackageReference Include="EricksonLopez.Mediator.Generator" Version="2.0.0" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 ```
 
 ---
@@ -57,12 +57,17 @@ dotnet add package EricksonLopez.Mediator.OpenTelemetry
 
 ---
 
-## 5. `EricksonLopez.Mediator.Polly` (Resilience)
+## 5. `EricksonLopez.Mediator.Polly` (Resilience — DEPRECATED)
+
+> [!WARNING]
+> **This package is deprecated (ADR-036) and will be archived in v2.0.**
+> Migrate to `EricksonLopez.Resilience.Mediator` which provides first-class resilience integration aligned with ecosystem architecture.
+
 Polly v8 resilience pipeline integration. Provides `PollyResilienceBehavior` and `[UseResiliencePipeline]` attributes to wrap command and query execution with retry, circuit breaker, rate limiter, and timeout strategies.
 
 - **TargetFrameworks**: `net8.0`, `net9.0`, `net10.0`
 - **Dependencies**: `EricksonLopez.Mediator`, `Polly.Core`, `Microsoft.Extensions.DependencyInjection.Abstractions`
-- **AOT Readiness**: ⚠️ Generally AOT-compatible. The `[UseResiliencePipeline]` attribute is read via `GetCustomAttribute<T>()` in a closed-generic static initializer (per ADR-030). Under aggressive trimming the attribute metadata must be explicitly preserved. Explicit configuration without assembly scanning is recommended for AOT workloads.
+- **AOT Readiness**: ⚠️ Deprecated (ADR-036). The `[UseResiliencePipeline]` attribute is read via `GetCustomAttribute<T>()` in a closed-generic static initializer (per ADR-030). Under aggressive trimming the attribute metadata must be explicitly preserved. Migrate to `EricksonLopez.Resilience.Mediator`.
 
 ```bash
 dotnet add package EricksonLopez.Mediator.Polly
@@ -109,26 +114,8 @@ dotnet add package EricksonLopez.Mediator.Testing
 
 ---
 
-## 9. `EricksonLopez.Mediator.Validation` (Validation Pipeline — DEPRECATED)
-
-> [!WARNING]
-> **This package is deprecated (ADR-033) and will be archived in v2.0.**
-> Migrate to [`EricksonLopez.Mediator.FluentValidation`](#10-ericksonlopezmediat0rfluent-validation-fluent-validation-pipeline) which provides the same functionality via `ValidationPipelineBehavior<TRequest, TResponse>` and `AddMediatorFluentValidation()`.
-
-Validation pipeline behavior integrating FluentValidation rules with `EricksonLopez.Mediator` and `EricksonLopez.Result.FluentValidation` for structured error reporting.
-
-- **TargetFrameworks**: `net8.0`, `net9.0`, `net10.0`
-- **Dependencies**: `EricksonLopez.Mediator`, `EricksonLopez.Mediator.Result`, `EricksonLopez.Result.FluentValidation`, `Microsoft.Extensions.DependencyInjection.Abstractions`
-- **AOT Readiness**: ❌ Not AOT compatible. `AddMediatorValidatorsFromAssembly` uses `AssemblyScanner` which relies on `[RequiresUnreferencedCode]` assembly scanning.
-
-```bash
-dotnet add package EricksonLopez.Mediator.Validation
-```
-
----
-
-## 10. `EricksonLopez.Mediator.FluentValidation` (FluentValidation Pipeline)
-The recommended FluentValidation integration. Provides `ValidationPipelineBehavior<TRequest, TResponse>` and fluent DI extensions (`AddMediatorFluentValidation()`, `AddMediatorFluentValidationValidator<TValidator, TRequest>()`, `AddMediatorFluentValidatorsFromAssembly()`). Replaces the deprecated `EricksonLopez.Mediator.Validation` package (ADR-033).
+## 9. `EricksonLopez.Mediator.FluentValidation` (FluentValidation Pipeline)
+The recommended FluentValidation integration. Provides `ValidationPipelineBehavior<TRequest, TResponse>` and fluent DI extensions (`AddMediatorFluentValidation()`, `AddMediatorFluentValidationValidator<TValidator, TRequest>()`, `AddMediatorFluentValidatorsFromAssembly()`). Replaced the legacy `EricksonLopez.Mediator.Validation` package (ADR-033).
 
 - **TargetFrameworks**: `net8.0`, `net9.0`, `net10.0`
 - **Dependencies**: `EricksonLopez.Mediator`, `EricksonLopez.Mediator.Result`, `EricksonLopez.Result.FluentValidation`, `Microsoft.Extensions.DependencyInjection.Abstractions`
@@ -136,4 +123,23 @@ The recommended FluentValidation integration. Provides `ValidationPipelineBehavi
 
 ```bash
 dotnet add package EricksonLopez.Mediator.FluentValidation
+```
+
+---
+
+## 10. `EricksonLopez.Mediator.Caching` (Response Caching Pipeline)
+Transparent response caching and cache invalidation pipeline behavior for `EricksonLopez.Mediator`. Integrates directly with `EricksonLopez.Caching` to provide stampede-protected multi-tier caching (in-memory and distributed) with 100% Native AOT compatibility (ADR-038).
+
+- **TargetFrameworks**: `net8.0`, `net9.0`, `net10.0`
+- **Dependencies**: `EricksonLopez.Mediator`, `EricksonLopez.Caching`, `EricksonLopez.Result`
+- **AOT Readiness**: ✅ 100% Native AOT compatible (0 trim warnings)
+
+Key features:
+- `ICacheableRequest`: Defines cache key, TTL, and cache options on query requests.
+- `[Cacheable]`: Declarative attribute for automatic query result caching.
+- `IInvalidateCacheRequest`: Evicts specific cache keys or key prefixes upon successful command execution.
+- `CachingPipelineBehavior<TRequest, TResponse>`: Zero-allocation struct continuation middleware.
+
+```bash
+dotnet add package EricksonLopez.Mediator.Caching
 ```

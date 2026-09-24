@@ -172,7 +172,7 @@ namespace TestApp
         // Call AddEricksonLopezMediator extension method
         var extType = assembly.GetType("Microsoft.Extensions.DependencyInjection.GeneratedMediatorExtensions")!;
         var addMediatorMethod = extType.GetMethod("AddEricksonLopezMediator")!;
-        addMediatorMethod.Invoke(null, new object[] { services });
+        addMediatorMethod.Invoke(null, new object[] { services, ServiceLifetime.Scoped });
 
         var provider = services.BuildServiceProvider();
         var mediator = provider.GetRequiredService<IMediator>();

@@ -3,6 +3,7 @@
 ## 1. Install Package
 ```bash
 dotnet add package EricksonLopez.Mediator
+dotnet add package EricksonLopez.Mediator.Generator
 ```
 
 ## 2. Define Command and Handler
@@ -24,10 +25,10 @@ public sealed class CreateOrderCommandHandler : ICommandHandler<CreateOrderComma
 ## 3. Register and Dispatch
 ```csharp
 var services = new ServiceCollection();
-services.AddMediator(); // Compile-time generated registration
+services.AddEricksonLopezMediator(); // Compile-time generated registration
 
 var provider = services.BuildServiceProvider();
 var sender = provider.GetRequiredService<ISender>();
 
-var orderId = await sender.SendCommand(new CreateOrderCommand(Guid.NewGuid(), 99.99m));
+var orderId = await sender.SendCommand<CreateOrderCommand, Guid>(new CreateOrderCommand(Guid.NewGuid(), 99.99m));
 ```

@@ -13,17 +13,30 @@ Replace `MediatR` and `MediatR.Contracts` packages:
 <PackageReference Include="MediatR" Version="12.4.1" />
 
 <!-- After -->
-<PackageReference Include="EricksonLopez.Mediator" Version="1.0.0-rc1" />
-<PackageReference Include="EricksonLopez.Mediator.Generator" Version="1.0.0-rc1" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+<PackageReference Include="EricksonLopez.Mediator" Version="2.0.0" />
+<PackageReference Include="EricksonLopez.Mediator.Generator" Version="2.0.0" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 ```
 
 ---
 
-## 2. Request Interfaces
+## 2. Request Interfaces & Compatibility Layer
 
-In MediatR, requests implement `IRequest<TResponse>`. In `EricksonLopez.Mediator`, use explicit CQRS semantics:
+`EricksonLopez.Mediator` supports two migration pathways:
 
-| MediatR | EricksonLopez.Mediator |
+### Option A: Zero-Friction Drop-In Migration (Compatibility Types)
+To minimize migration friction in large codebases, `EricksonLopez.Mediator` provides native compatibility abstractions in the root namespace:
+- `IRequest<TResponse>` (treated as command request)
+- `IRequest` (equivalent to `IRequest<Unit>`)
+- `IRequestHandler<TRequest, TResponse>`
+- `IRequestHandler<TRequest>`
+- `Unit` (zero-size readonly struct with `Unit.Value`)
+
+The Roslyn Incremental Source Generator natively recognizes `IRequestHandler<TRequest, TResponse>` and generates static compile-time dispatch routes for them automatically!
+
+### Option B: Strict CQRS Segregation (Recommended Target)
+For clean architectural boundaries, segregate requests into explicit commands and queries:
+
+| MediatR | EricksonLopez.Mediator (Target) |
 |---|---|
 | `IRequest<TResponse>` (Command) | `ICommand<TResponse>` |
 | `IRequest<TResponse>` (Query) | `IQuery<TResponse>` |
@@ -34,7 +47,7 @@ In MediatR, requests implement `IRequest<TResponse>`. In `EricksonLopez.Mediator
 
 ## 3. Handler Signatures
 
-Change `Task<TResponse> Handle(..., CancellationToken)` to return `ValueTask<TResponse>`:
+Handlers in `EricksonLopez.Mediator` return `ValueTask<TResponse>` instead of `Task<TResponse>` to enable zero heap allocations for synchronously completed operations:
 
 ```csharp
 // Before (MediatR)
@@ -46,7 +59,16 @@ public class PingHandler : IRequestHandler<PingCommand, string>
     }
 }
 
-// After (EricksonLopez.Mediator)
+// After (Option A - Compatibility Handler)
+public class PingHandler : IRequestHandler<PingCommand, string>
+{
+    public ValueTask<string> Handle(PingCommand request, CancellationToken cancellationToken)
+    {
+        return ValueTask.FromResult("Pong");
+    }
+}
+
+// After (Option B - Strict CQRS Handler)
 public class PingHandler : ICommandHandler<PingCommand, string>
 {
     public ValueTask<string> Handle(PingCommand command, CancellationToken cancellationToken)

@@ -9,4 +9,4 @@ This space is dedicated to:
 - Performance profiling and zero-allocation benchmarking reports.
 
 ## 2. Code of Conduct
-Please review our [Code of Conduct](../code-of-conduct.md) before participating.
+Please review our [Code of Conduct](../../CODE_OF_CONDUCT.md) before participating.

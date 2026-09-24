@@ -7,8 +7,8 @@
 ## 1. Compile-Time Registration Mechanism
 
 When `builder.Services.AddEricksonLopezMediator()` is called:
-1. `GeneratedMediator` is registered as a **Singleton** (`IMediator`, `ISender`, `IPublisher`).
-2. The `IServiceProvider` is captured by `GeneratedMediator` to resolve scoped and transient handlers on demand.
+1. `GeneratedMediator` is registered as a **Scoped** service (`IMediator`, `ISender`, `IPublisher`) by default (per ADR-037, configurable via `lifetime: ServiceLifetime.Singleton` or `Transient`).
+2. The `IServiceProvider` is captured by `GeneratedMediator` within its scope to resolve scoped and transient handlers on demand.
 3. Every discovered handler and behavior is registered in DI with its configured `[ServiceLifetime]`.
 
 Because the Source Generator writes direct calls to `serviceProvider.GetRequiredService<THandler>()` inside `GeneratedMediator`, **zero reflection or runtime type scanning** occurs.

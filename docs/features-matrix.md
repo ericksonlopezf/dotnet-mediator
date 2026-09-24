@@ -6,7 +6,7 @@
 |---|---|:---:|---|
 | **CQRS Core** | Point-to-Point Command Dispatch (`ICommand<T>`) | ✅ Fully Supported | v1.0 |
 | **CQRS Core** | Point-to-Point Query Dispatch (`IQuery<T>`) | ✅ Fully Supported | v1.0 |
-| **CQRS Core** | Asynchronous Streaming Query Dispatch (`IStreamQuery<T>`) | ✅ Fully Supported | v1.0 |
+| **CQRS Core** | Asynchronous Streaming Request Dispatch (`IStreamRequest<T>`) | ✅ Fully Supported | v1.0 |
 | **Pub/Sub** | In-Process Domain Events (`INotification`) | ✅ Fully Supported | v1.0 |
 | **Pub/Sub** | Configurable Notification Dispatch Strategies (`[PublishStrategy]`) | ✅ Fully Supported | v1.0 |
 | **Pipelines** | Zero-Allocation Struct Pipeline Interceptors (`IPipelineBehavior`) | ✅ Fully Supported | v1.0 |

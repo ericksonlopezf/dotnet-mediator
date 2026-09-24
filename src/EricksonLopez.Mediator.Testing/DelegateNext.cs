@@ -15,10 +15,11 @@ public readonly struct DelegateNext : INext
     /// Initializes a new instance of the <see cref="DelegateNext"/> struct with an asynchronous callback delegate.
     /// </summary>
     /// <param name="continuation">The asynchronous delegate to invoke.</param>
-    /// <exception cref="ArgumentNullException"><paramref name="continuation"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="continuation"/> is <see langword="null"/></exception>
     public DelegateNext(Func<ValueTask> continuation)
     {
-        _continuation = continuation ?? throw new ArgumentNullException(nameof(continuation));
+        ArgumentNullException.ThrowIfNull(continuation);
+        _continuation = continuation;
     }
 
     /// <summary>

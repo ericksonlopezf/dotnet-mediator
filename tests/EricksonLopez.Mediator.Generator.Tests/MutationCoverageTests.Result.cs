@@ -55,6 +55,12 @@ namespace TestApp
     {
         public ValueTask<Result<string>> Handle(ResultCmd command, CancellationToken ct) => new(Result<string>.Success(""ok""));
     }
+
+    public class ResultCmd2 : ICommand<Result<int>> { }
+    public class ResultCmdHandler2 : ICommandHandler<ResultCmd2, Result<int>>
+    {
+        public ValueTask<Result<int>> Handle(ResultCmd2 command, CancellationToken ct) => new(Result<int>.Success(123));
+    }
 }";
         var compilation = CreateCompilation(source);
         var generator = new MediatorSourceGenerator();
@@ -66,9 +72,15 @@ namespace TestApp
         var diCode = outComp.SyntaxTrees
             .First(t => t.FilePath.Contains("GeneratedMediatorExtensions.g.cs")).ToString();
 
+        diCode.Should().Contain("services.TryAddSingleton<global::EricksonLopez.Mediator.Result.IResultFactory<global::EricksonLopez.Result.Result<string>>, ResultFactory0>();");
+        diCode.Should().Contain("services.TryAddSingleton<global::EricksonLopez.Mediator.Result.IResultFactory<global::EricksonLopez.Result.Result<int>>, ResultFactory1>();");
+
         diCode.Should().Contain("internal sealed class ResultFactory0 : global::EricksonLopez.Mediator.Result.IResultFactory<global::EricksonLopez.Result.Result<string>>");
-        diCode.Should().Contain("public global::EricksonLopez.Result.Result<string> CreateFailure(global::EricksonLopez.Result.Error error)");
-        diCode.Should().Contain("return global::EricksonLopez.Result.Result<string>.Failure(error);");
+        diCode.Should().Contain("internal sealed class ResultFactory1 : global::EricksonLopez.Mediator.Result.IResultFactory<global::EricksonLopez.Result.Result<int>>");
+
+        var normalizedDi = diCode.Replace("\r\n", "\n");
+        var expectedFactory = "    internal sealed class ResultFactory0 : global::EricksonLopez.Mediator.Result.IResultFactory<global::EricksonLopez.Result.Result<string>>\n    {\n        public global::EricksonLopez.Result.Result<string> CreateFailure(global::EricksonLopez.Result.Error error)\n        {\n            return global::EricksonLopez.Result.Result<string>.Failure(error);\n        }\n    }";
+        normalizedDi.Should().Contain(expectedFactory);
     }
 
     [Fact]
@@ -94,7 +106,7 @@ namespace TestApp
         var diCode = outComp.SyntaxTrees
             .First(t => t.FilePath.Contains("GeneratedMediatorExtensions.g.cs")).ToString();
 
-        Assert.Contains("services.AddSingleton<global::EricksonLopez.Mediator.Result.IResultFactory<global::EricksonLopez.Result.Result<int>>, ResultFactory0>();", diCode);
+        Assert.Contains("services.TryAddSingleton<global::EricksonLopez.Mediator.Result.IResultFactory<global::EricksonLopez.Result.Result<int>>, ResultFactory0>();", diCode);
     }
 
     [Fact]
@@ -144,8 +156,8 @@ namespace TestApp
 
         normalizedDiCode.Should().Contain(expectedFactory0);
         normalizedDiCode.Should().Contain(expectedFactory1);
-        Assert.Contains("services.AddSingleton<global::EricksonLopez.Mediator.Result.IResultFactory<global::EricksonLopez.Result.Result<int>>, ResultFactory0>();", diCode);
-        Assert.Contains("services.AddSingleton<global::EricksonLopez.Mediator.Result.IResultFactory<global::EricksonLopez.Result.Result<string>>, ResultFactory1>();", diCode);
+        Assert.Contains("services.TryAddSingleton<global::EricksonLopez.Mediator.Result.IResultFactory<global::EricksonLopez.Result.Result<int>>, ResultFactory0>();", diCode);
+        Assert.Contains("services.TryAddSingleton<global::EricksonLopez.Mediator.Result.IResultFactory<global::EricksonLopez.Result.Result<string>>, ResultFactory1>();", diCode);
     }
 
     [Fact]

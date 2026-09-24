@@ -78,6 +78,6 @@ Pipeline behaviors are declared using attributes:
   ```
 - **Per-Request Behaviors**: Wrap specific commands or queries:
   ```csharp
-  [UseBehavior(typeof(ValidationBehavior<,>), order: 3)]
+  [UseBehavior(typeof(ValidationPipelineBehavior<,>), order: 3)]
   public sealed record ProcessPaymentCommand(decimal Amount) : ICommand<PaymentResult>;
   ```

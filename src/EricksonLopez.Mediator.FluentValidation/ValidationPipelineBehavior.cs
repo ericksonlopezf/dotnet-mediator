@@ -13,7 +13,7 @@ using global::FluentValidation;
 namespace EricksonLopez.Mediator.FluentValidation;
 
 /// <summary>
-/// A pipeline behavior that executes registered <see cref="IValidator{T}"/> instances prior to handler execution.
+/// Provides a pipeline behavior that executes registered <see cref="IValidator{T}"/> instances prior to handler execution.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -59,7 +59,10 @@ namespace EricksonLopez.Mediator.FluentValidation;
 /// <typeparam name="TResponse">The type of response returned by the pipeline.</typeparam>
 public sealed class ValidationPipelineBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
 {
-    private readonly IEnumerable<IValidator<TRequest>> _validators;
+    // FIX PERF-001: Store as IReadOnlyList<T> to avoid double-enumeration.
+    // Previously, IEnumerable<T> was enumerated by .Any() and then .Select(v => ...) — two enumerations
+    // over potentially deferred/expensive sequences. Materializing once in the constructor is O(1) at Handle.
+    private readonly IReadOnlyList<IValidator<TRequest>> _validators;
     private readonly IResultFactory<TResponse>? _resultFactory;
 
     /// <summary>
@@ -77,17 +80,14 @@ public sealed class ValidationPipelineBehavior<TRequest, TResponse> : IPipelineB
         IEnumerable<IValidator<TRequest>>? validators = null,
         IResultFactory<TResponse>? resultFactory = null)
     {
-        _validators = validators ?? Enumerable.Empty<IValidator<TRequest>>();
+        // FIX PERF-001: Materialize the validator collection once at construction time.
+        // This avoids deferred enumeration on every Handle call.
+        _validators = validators?.ToList() ?? (IReadOnlyList<IValidator<TRequest>>)[];
         _resultFactory = resultFactory;
     }
 
     /// <inheritdoc/>
-    /// <exception cref="ValidationException">
-    /// Thrown when validation fails and no <see cref="IResultFactory{TResponse}"/> is registered.
-    /// </exception>
-    /// <exception cref="TaskCanceledException">
-    /// Thrown when <paramref name="cancellationToken"/> is cancelled before all validators complete.
-    /// </exception>
+    /// <exception cref="ValidationException">Validation fails and no <see cref="IResultFactory{TResponse}"/> is registered</exception>
     public async ValueTask<TResponse> Handle<TNext>(
         TRequest request,
         TNext next,
@@ -96,9 +96,8 @@ public sealed class ValidationPipelineBehavior<TRequest, TResponse> : IPipelineB
     {
         if (_validators.Any())
         {
-            var context = new ValidationContext<TRequest>(request);
             var validationResults = await Task.WhenAll(
-                _validators.Select(v => v.ValidateAsync(context, cancellationToken))).ConfigureAwait(false);
+                _validators.Select(v => v.ValidateAsync(new ValidationContext<TRequest>(request), cancellationToken))).ConfigureAwait(false);
 
             var failures = validationResults
                 .SelectMany(r => r.Errors)

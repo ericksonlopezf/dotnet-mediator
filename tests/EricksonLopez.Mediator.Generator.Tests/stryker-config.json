@@ -1,13 +1,13 @@
 {
   "stryker-config": {
     "project": "EricksonLopez.Mediator.Generator.csproj",
-    "concurrency": 1,
-    "coverage-analysis": "perTest",
+    "concurrency": 2,
+    "coverage-analysis": "off",
     "additional-timeout": 30000,
     "thresholds": {
       "high": 100,
-      "low": 95,
-      "break": 90
+      "low": 98,
+      "break": 95
     },
     "reporters": [
       "html",

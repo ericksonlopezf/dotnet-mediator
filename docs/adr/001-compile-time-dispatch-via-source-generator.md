@@ -1,5 +1,11 @@
 # ADR-001: Compile-Time Dispatch via Source Generator
 
+## Status
+Accepted
+
+## Date
+2026-09-04
+
 **Status**: Accepted
 
 ### Context

@@ -1,5 +1,11 @@
 # ADR-034: Promotion of IStreamRequest<T> Streaming to Stable via Direct Handler Dispatch
 
+## Status
+Rejected
+
+## Date
+2026-08-26
+
 **Status**: Approved (Supersedes ADR-015)
 
 **Date**: 2026-08-26

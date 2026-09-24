@@ -7,15 +7,22 @@ using EricksonLopez.Mediator;
 namespace Sample.Levels.Level3_RealUseCases;
 
 // --- Query Contract (Pure idempotent read) ---
+/// <summary>
+/// Represents a query to retrieve a user profile by unique identifier.
+/// </summary>
 public sealed record GetUserByIdQuery(Guid UserId) : IQuery<UserProfileDto?>;
 
+/// <summary>
+/// Represents a data transfer object containing user profile details.
+/// </summary>
 public sealed record UserProfileDto(Guid UserId, string FullName, string Email, string Role);
 
 /// <summary>
-/// Strict query handler retrieving data without mutating state.
+/// Processes <see cref="GetUserByIdQuery"/> without mutating state.
 /// </summary>
 public sealed class GetUserByIdQueryHandler : IQueryHandler<GetUserByIdQuery, UserProfileDto?>
 {
+    /// <inheritdoc/>
     public ValueTask<UserProfileDto?> Handle(GetUserByIdQuery query, CancellationToken cancellationToken)
     {
         Console.WriteLine($"[Level 3 - QueryHandler] Querying user profile for {query.UserId}");
@@ -24,14 +31,17 @@ public sealed class GetUserByIdQueryHandler : IQueryHandler<GetUserByIdQuery, Us
     }
 }
 
-// --- Notification / Domain Event Contract ---
+/// <summary>
+/// Represents a notification emitted when an order is placed.
+/// </summary>
 public sealed record OrderPlacedDomainEvent(Guid OrderId, decimal TotalAmount, string CustomerEmail) : INotification;
 
 /// <summary>
-/// First event consumer: Sending confirmation email.
+/// Processes order placed events to send confirmation emails.
 /// </summary>
 public sealed class SendOrderConfirmationEmailHandler : INotificationHandler<OrderPlacedDomainEvent>
 {
+    /// <inheritdoc/>
     public ValueTask Handle(OrderPlacedDomainEvent notification, CancellationToken cancellationToken)
     {
         Console.WriteLine($"[Level 3 - NotificationHandler 1] Sending confirmation email to {notification.CustomerEmail} for ${notification.TotalAmount}");
@@ -40,10 +50,11 @@ public sealed class SendOrderConfirmationEmailHandler : INotificationHandler<Ord
 }
 
 /// <summary>
-/// Second event consumer: Order creation audit logging.
+/// Processes order placed events to record audit logs.
 /// </summary>
 public sealed class AuditOrderCreationHandler : INotificationHandler<OrderPlacedDomainEvent>
 {
+    /// <inheritdoc/>
     public ValueTask Handle(OrderPlacedDomainEvent notification, CancellationToken cancellationToken)
     {
         Console.WriteLine($"[Level 3 - NotificationHandler 2] Writing audit log: Order {notification.OrderId} created successfully");
@@ -52,10 +63,15 @@ public sealed class AuditOrderCreationHandler : INotificationHandler<OrderPlaced
 }
 
 /// <summary>
-/// Level 3: Real CQRS Use Cases (Segregation of IQuery, ISender, and IPublisher).
+/// Demonstrates CQRS segregation of queries, commands, and notifications.
 /// </summary>
 public static class Demo
 {
+    /// <summary>
+    /// Runs the CQRS use cases demonstration.
+    /// </summary>
+    /// <param name="mediator">The mediator instance used for dispatching.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     public static async Task RunAsync(IMediator mediator)
     {
         Console.WriteLine("================================================================================");

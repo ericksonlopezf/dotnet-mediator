@@ -24,7 +24,7 @@ public static class MediatorFluentValidationExtensions
     /// </summary>
     /// <param name="services">The service collection to configure.</param>
     /// <returns>The same <see cref="IServiceCollection"/> instance for method chaining.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="services"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="services"/> is <see langword="null"/></exception>
     /// <remarks>
     /// <para>
     /// Call this method once during application startup (e.g., in <c>Program.cs</c>).
@@ -63,7 +63,7 @@ public static class MediatorFluentValidationExtensions
     /// </param>
     /// <returns>The same <see cref="IServiceCollection"/> instance for method chaining.</returns>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="services"/> or <paramref name="assembly"/> is <see langword="null"/>.
+    /// <paramref name="services"/> or <paramref name="assembly"/> is <see langword="null"/>
     /// </exception>
     /// <remarks>
     /// <para>
@@ -110,7 +110,7 @@ public static class MediatorFluentValidationExtensions
     /// The service lifetime applied to the validator. Defaults to <see cref="ServiceLifetime.Scoped"/>.
     /// </param>
     /// <returns>The same <see cref="IServiceCollection"/> instance for method chaining.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="services"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="services"/> is <see langword="null"/></exception>
     /// <remarks>
     /// <para>
     /// This overload is the <strong>AOT-safe</strong> alternative to

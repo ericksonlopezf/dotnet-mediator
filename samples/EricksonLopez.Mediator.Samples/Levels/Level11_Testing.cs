@@ -13,19 +13,30 @@ namespace Sample.Levels.Level11_Testing;
 // Domain contracts used exclusively in this testing showcase
 // ─────────────────────────────────────────────────────────────────────────────
 
-/// <summary>Command to place a customer order.</summary>
+// ─────────────────────────────────────────────────────────────────────────────
+// Domain contracts used exclusively in this testing showcase
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// <summary>Represents a command to place a customer order.</summary>
+/// <param name="ProductId">The product identifier.</param>
+/// <param name="Quantity">The quantity of products ordered.</param>
 public sealed record PlaceOrderCommand(string ProductId, int Quantity) : ICommand<OrderReceipt>;
 
-/// <summary>DTO returned by the order handler.</summary>
+/// <summary>Represents the receipt returned by the order handler.</summary>
+/// <param name="OrderId">The unique identifier of the placed order.</param>
+/// <param name="Status">The processing status of the order.</param>
 public sealed record OrderReceipt(Guid OrderId, string Status);
 
-/// <summary>Query to retrieve a product price.</summary>
+/// <summary>Represents a query to retrieve a product price.</summary>
+/// <param name="ProductId">The unique identifier of the product.</param>
 public sealed record GetProductPriceQuery(string ProductId) : IQuery<decimal>;
 
-/// <summary>Notification raised when an order is confirmed.</summary>
+/// <summary>Represents a notification published when an order is confirmed.</summary>
+/// <param name="OrderId">The unique identifier of the confirmed order.</param>
 public sealed record OrderConfirmedEvent(Guid OrderId) : INotification;
 
-/// <summary>Streaming request that emits price history entries.</summary>
+/// <summary>Represents a streaming request that emits price history entries.</summary>
+/// <param name="ProductId">The unique identifier of the product.</param>
 public sealed record PriceHistoryStreamRequest(string ProductId) : IStreamRequest<decimal>;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -38,6 +49,7 @@ public sealed record PriceHistoryStreamRequest(string ProductId) : IStreamReques
 /// <summary>Stub handler satisfying the compile-time generator requirement for <see cref="PlaceOrderCommand"/>.</summary>
 internal sealed class PlaceOrderCommandHandler : ICommandHandler<PlaceOrderCommand, OrderReceipt>
 {
+    /// <inheritdoc />
     public ValueTask<OrderReceipt> Handle(PlaceOrderCommand command, CancellationToken cancellationToken)
         => ValueTask.FromResult(new OrderReceipt(Guid.NewGuid(), "STUB"));
 }
@@ -45,6 +57,7 @@ internal sealed class PlaceOrderCommandHandler : ICommandHandler<PlaceOrderComma
 /// <summary>Stub handler satisfying the compile-time generator requirement for <see cref="GetProductPriceQuery"/>.</summary>
 internal sealed class GetProductPriceQueryHandler : IQueryHandler<GetProductPriceQuery, decimal>
 {
+    /// <inheritdoc />
     public ValueTask<decimal> Handle(GetProductPriceQuery query, CancellationToken cancellationToken)
         => ValueTask.FromResult(0m);
 }
@@ -52,6 +65,7 @@ internal sealed class GetProductPriceQueryHandler : IQueryHandler<GetProductPric
 /// <summary>Stub handler satisfying the compile-time generator requirement for <see cref="OrderConfirmedEvent"/>.</summary>
 internal sealed class OrderConfirmedEventStubHandler : INotificationHandler<OrderConfirmedEvent>
 {
+    /// <inheritdoc />
     public ValueTask Handle(OrderConfirmedEvent notification, CancellationToken cancellationToken)
         => ValueTask.CompletedTask;
 }
@@ -59,6 +73,7 @@ internal sealed class OrderConfirmedEventStubHandler : INotificationHandler<Orde
 /// <summary>Stub handler satisfying the compile-time generator requirement for <see cref="PriceHistoryStreamRequest"/>.</summary>
 internal sealed class PriceHistoryStreamRequestHandler : IStreamRequestHandler<PriceHistoryStreamRequest, decimal>
 {
+    /// <inheritdoc />
     public async IAsyncEnumerable<decimal> Handle(
         PriceHistoryStreamRequest request,
         [EnumeratorCancellation] CancellationToken cancellationToken)
@@ -73,11 +88,14 @@ internal sealed class PriceHistoryStreamRequestHandler : IStreamRequestHandler<P
 // ─────────────────────────────────────────────────────────────────────────────
 
 /// <summary>
-/// Logging behavior that wraps the notification pipeline.
+/// Represents a logging behavior that wraps the notification pipeline.
+/// </summary>
+/// <remarks>
 /// Demonstrates <see cref="INotificationBehavior{TNotification}"/> with
 /// struct <see cref="INext"/> continuation — the notification equivalent of
 /// <see cref="IPipelineBehavior{TRequest,TResponse}"/>.
-/// </summary>
+/// </remarks>
+/// <typeparam name="TNotification">The type of notification being handled.</typeparam>
 public sealed class NotificationLoggingBehavior<TNotification> : INotificationBehavior<TNotification>
     where TNotification : INotification
 {
@@ -132,19 +150,22 @@ internal static class DelegateNextExamples
 }
 
 /// <summary>
-/// Minimal request used for isolated behavior unit tests.
-/// Not a handler-registration concern — used only in direct behavior invocation.
+/// Represents a minimal request used for isolated behavior unit tests.
 /// </summary>
+/// <param name="Payload">The payload string associated with the request.</param>
 public sealed record DummyRequest(string Payload) : ICommand<string>;
 
 /// <summary>Stub handler satisfying the compile-time generator requirement for <see cref="DummyRequest"/>.</summary>
 internal sealed class DummyRequestHandler : ICommandHandler<DummyRequest, string>
 {
+    /// <inheritdoc />
     public ValueTask<string> Handle(DummyRequest command, CancellationToken cancellationToken)
         => ValueTask.FromResult("STUB");
 }
 
-/// <summary>Minimal behavior used for DelegateNext unit-test demonstrations.</summary>
+/// <summary>Represents a minimal behavior used for DelegateNext unit-test demonstrations.</summary>
+/// <typeparam name="TRequest">The type of request being handled.</typeparam>
+/// <typeparam name="TResponse">The type of response returned by the pipeline.</typeparam>
 public sealed class LoggingPipelineBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
 {
     /// <inheritdoc />
@@ -201,11 +222,12 @@ internal static class DelegateNextNotificationExamples
 // ─────────────────────────────────────────────────────────────────────────────
 
 /// <summary>
-/// Level 11: Dedicated testing showcase.
-/// Covers the complete <see cref="FakeMediator"/> and <see cref="DelegateNext"/> surface.
+/// Demonstrates testing capabilities covering <see cref="FakeMediator"/> and <see cref="DelegateNext"/>.
 /// </summary>
 public static class Demo
 {
+    /// <summary>Executes the Level 11 testing showcase demonstration.</summary>
+    /// <returns>A task representing the asynchronous demonstration operation.</returns>
     public static async Task RunAsync()
     {
         Console.WriteLine("================================================================================");
@@ -441,12 +463,14 @@ public static class Demo
     }
 }
 
-/// <summary>Placeholder notification type used to verify ShouldNotHaveReceived assertions.</summary>
+/// <summary>Represents a placeholder notification type used to verify ShouldNotHaveReceived assertions.</summary>
+/// <param name="Reason">The reason associated with the notification.</param>
 internal sealed record FlakyNotification(string Reason) : INotification;
 
 /// <summary>Stub handler satisfying the compile-time generator requirement for <see cref="FlakyNotification"/>.</summary>
 internal sealed class FlakyNotificationStubHandler : INotificationHandler<FlakyNotification>
 {
+    /// <inheritdoc />
     public ValueTask Handle(FlakyNotification notification, CancellationToken cancellationToken)
         => ValueTask.CompletedTask;
 }

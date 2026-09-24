@@ -10,7 +10,7 @@ If you need help with `EricksonLopez.Mediator`, there are a few ways to get it:
   * [Cookbook & Recipes](docs/cookbook.md)
   * [Troubleshooting & Diagnostics](docs/troubleshooting.md)
   * [CI/CD & Quality Pipelines](docs/ci-cd-pipelines.md)
-* **Explore the Showcase:** The repository contains an executable showcase under `samples/Sample/` demonstrating features from basic to advanced. Run it with `dotnet run --project samples/Sample/Sample.csproj`.
+* **Explore the Showcase:** The repository contains an executable showcase under `samples/EricksonLopez.Mediator.Samples/` demonstrating features from basic to advanced across 12 progressive levels. Run it with `dotnet run --project samples/EricksonLopez.Mediator.Samples/EricksonLopez.Mediator.Samples.csproj -c Release`.
 * **Search Existing Issues:** Before opening a new issue, search the [issue tracker](https://github.com/ericksonlopezf/dotnet-mediator/issues) to check if an issue or question has already been addressed.
 * **Open a New Issue:** Use the provided GitHub issue templates for bug reports or feature requests.
 * **Security Concerns:** For vulnerability reports, follow our [Security Policy](SECURITY.md) and contact [ericksonlopezf@gmail.com](mailto:ericksonlopezf@gmail.com) directly.

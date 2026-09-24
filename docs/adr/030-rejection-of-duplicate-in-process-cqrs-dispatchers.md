@@ -1,5 +1,11 @@
 # ADR-030: Rejection of Duplicate In-Process CQRS Dispatchers (CommandBus / QueryBus)
 
+## Status
+Rejected
+
+## Date
+2026-09-04
+
 **Status**: Accepted — August 2026
 
 ### Context

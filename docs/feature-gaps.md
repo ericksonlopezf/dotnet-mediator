@@ -6,7 +6,7 @@ The following capabilities have been formally reviewed via Architectural Decisio
 
 | Discarded Feature | ADR Reference | Rationale | Recommended Architectural Pattern |
 |---|---|---|---|
-| **Runtime DI Scanning** | ADR-011 | Startup latency penalty and Native AOT trimming breakage. | Static compile-time source generation (`AddMediator()`). |
+| **Runtime DI Scanning** | ADR-011 | Startup latency penalty and Native AOT trimming breakage. | Static compile-time source generation (`AddEricksonLopezMediator()`). |
 | **Delegate Pipeline Closures** | ADR-013 | Induces heap allocations and GC Gen 0 pressure. | Zero-allocation struct `INext<TResponse>` continuations. |
 | **Built-in Auto-Retry in Core** | ADR-014 | Blurs concerns and duplicates battle-tested resilience engines. | Use `EricksonLopez.Mediator.Polly` with Polly v8. |
 | **Built-in Outbox / Inbox / Sagas** | ADR-019 | Transports and persistence mechanics belong in infrastructure messaging busses (e.g. MassTransit, Wolverine, RabbitMQ). | In-process mediator triggers domain events; infrastructure handles distributed broker publishing. |

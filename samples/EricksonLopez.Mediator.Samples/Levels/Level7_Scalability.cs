@@ -10,10 +10,15 @@ using EricksonLopez.Mediator.RateLimiting;
 namespace Sample.Levels.Level7_Scalability;
 
 // --- 1. High Throughput Command for Benchmarking ---
+
+/// <summary>Represents a lightweight command used for high-throughput benchmarking.</summary>
+/// <param name="Value">The integer value to process.</param>
 public sealed record HighThroughputCommand(int Value) : ICommand<int>;
 
+/// <summary>Handles benchmarking calculations for <see cref="HighThroughputCommand"/>.</summary>
 public sealed class HighThroughputCommandHandler : ICommandHandler<HighThroughputCommand, int>
 {
+    /// <inheritdoc/>
     public ValueTask<int> Handle(HighThroughputCommand command, CancellationToken cancellationToken)
     {
         return ValueTask.FromResult(command.Value * 2);
@@ -21,21 +26,27 @@ public sealed class HighThroughputCommandHandler : ICommandHandler<HighThroughpu
 }
 
 // --- 2. Rate-Limited Command ---
+
+/// <summary>Represents an API operation subject to rate limiting constraints.</summary>
+/// <param name="ClientId">The identifier of the calling client.</param>
 public sealed record RateLimitedApiCommand(string ClientId) : ICommand<string>;
 
+/// <summary>Handles authorization and processing for <see cref="RateLimitedApiCommand"/>.</summary>
 public sealed class RateLimitedApiCommandHandler : ICommandHandler<RateLimitedApiCommand, string>
 {
+    /// <inheritdoc/>
     public ValueTask<string> Handle(RateLimitedApiCommand command, CancellationToken cancellationToken)
     {
         return ValueTask.FromResult($"Request approved for client {command.ClientId}");
     }
 }
 
-/// <summary>
-/// Level 7: Scalability, Zero Allocations, and Rate Limiting.
-/// </summary>
+/// <summary>Demonstrates mediator scalability, throughput, and rate limiting.</summary>
 public static class Demo
 {
+    /// <summary>Executes the Level 7 scalability and throughput demonstration.</summary>
+    /// <param name="mediator">The mediator instance to use for dispatching.</param>
+    /// <returns>A task representing the asynchronous demonstration operation.</returns>
     public static async Task RunAsync(IMediator mediator)
     {
         Console.WriteLine("================================================================================");

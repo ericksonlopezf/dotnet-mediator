@@ -1,12 +1,12 @@
 # Architecture Decision Records (ADR) Index — EricksonLopez.Mediator
 
-This document indexes all 35 Architecture Decision Records (ADRs) and architectural invariants governing `EricksonLopez.Mediator`.
+This document indexes all 38 Architecture Decision Records (ADRs) and architectural invariants governing `EricksonLopez.Mediator`.
 
 Authoritative markdown records are located in [`docs/adr/`](adr/).
 
 ---
 
-## ADR Registry (1 to 35)
+## ADR Registry (1 to 38)
 
 | ADR | Title | Status | Scope |
 |---|---|---|---|
@@ -18,7 +18,7 @@ Authoritative markdown records are located in [`docs/adr/`](adr/).
 | [ADR-006](adr/006-no-runtime-di-scanning.md) | No Runtime DI Scanning | Approved | DI / AOT |
 | [ADR-007](adr/007-attribute-based-behavior-configuration.md) | Attribute-Based Pipeline Behavior Configuration | Approved | Pipeline |
 | [ADR-008](adr/008-sequential-notification-execution-as-default.md) | Sequential Notification Execution as Default | Approved | Notifications |
-| [ADR-009](adr/009-imediator-as-singleton.md) | `IMediator` Registered as Singleton | Approved | DI |
+| [ADR-009](adr/009-imediator-as-singleton.md) | ~~`IMediator` Registered as Singleton~~ **Superseded by ADR-037** | Superseded | DI |
 | [ADR-010](adr/010-rejected-runtime-reflection-for-dispatch.md) | Rejected: Runtime Reflection for Dispatch | Rejected | Architecture |
 | [ADR-011](adr/011-rejected-assembly-scanning-for-handler-discovery.md) | Rejected: Assembly Scanning at Runtime | Rejected | Architecture |
 | [ADR-012](adr/012-deferred-multi-assembly-handler-discovery.md) | Multi-Assembly Handler Discovery via `[DiscoverHandlers]` | Approved | Generator |
@@ -45,4 +45,7 @@ Authoritative markdown records are located in [`docs/adr/`](adr/).
 | [ADR-033](adr/033-deprecation-validation-package-in-favor-of-fluentvalidation.md) | Deprecation of `EricksonLopez.Mediator.Validation` in favor of FluentValidation | Approved | Packages |
 | [ADR-034](adr/034-promotion-streaming-stable-direct-handler-dispatch.md) | Promotion of Streaming to Stable via Direct Handler Dispatch | Approved | Streaming |
 | [ADR-035](adr/035-institutional-testing-xunit-assert-in-generator-tests.md) | Institutional Testing: xUnit Assert in Generator Tests Exception | Approved | Testing |
+| [ADR-036](adr/036-deprecation-mediator-polly-in-favor-of-resilience-mediator.md) | Deprecation of `EricksonLopez.Mediator.Polly` in Favor of `EricksonLopez.Resilience.Mediator` | Approved | Packages |
+| [ADR-037](adr/037-scoped-mediator-by-default.md) | Scoped Mediator Lifetime by Default (Supersedes ADR-009) | Approved | DI |
+| [ADR-038](adr/038-response-caching-pipeline-behavior-package.md) | Response Caching Pipeline Behavior via Dedicated Integration Package | Approved | Caching |
 | [REJECT-002](adr/reject-002-state-machine-in-mediator.md) | Rejection of Stateful Workflow and Saga Management inside Mediator | Invariant | Architecture |

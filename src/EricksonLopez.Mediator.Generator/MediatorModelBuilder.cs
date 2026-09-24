@@ -43,13 +43,22 @@ public static class MediatorModelBuilder
                 continue;
             }
 
+            // Skip private and protected types — they cannot be registered in DI or referenced
+            // from generated code (would produce CS0122 inaccessible due to protection level).
+            if (type.DeclaredAccessibility == Microsoft.CodeAnalysis.Accessibility.Private ||
+                type.DeclaredAccessibility == Microsoft.CodeAnalysis.Accessibility.Protected ||
+                type.DeclaredAccessibility == Microsoft.CodeAnalysis.Accessibility.ProtectedAndInternal)
+            {
+                continue;
+            }
+
             // ELM005: Open generic handlers are skipped — emit a warning so the developer is informed.
             if (type.IsGenericType)
             {
                 // Only warn if the open generic type actually implements a mediator handler interface
                 var implementsMediatorHandler = type.AllInterfaces.Any(i =>
                     i.ContainingNamespace.ToDisplayString() == "EricksonLopez.Mediator" &&
-                    (i.Name == "ICommandHandler" || i.Name == "IQueryHandler" || i.Name == "INotificationHandler" || i.Name == "IStreamRequestHandler"));
+                    (i.Name == "ICommandHandler" || i.Name == "IQueryHandler" || i.Name == "IRequestHandler" || i.Name == "INotificationHandler" || i.Name == "IStreamRequestHandler"));
                 if (implementsMediatorHandler)
                 {
                     ValidateOpenGenericHandler(type, context);
@@ -95,6 +104,32 @@ public static class MediatorModelBuilder
                             var lifetime = GetLifetime(type);
                             var validations = GetPropertyValidations(reqType);
                             queryHandlers.Add(new HandlerDefinition(type, reqType, resType, behaviors.ToArray(), lifetime, validations));
+                        }
+                    }
+                    else if (iface.Name == "IRequestHandler" && iface.TypeArguments.Length == 2)
+                    {
+                        var reqType = (INamedTypeSymbol)iface.TypeArguments[0];
+                        var resType = (INamedTypeSymbol)iface.TypeArguments[1];
+                        TrackResultResponse(resultResponseTypes, resType);
+
+                        if (ValidateHandlerSignature(type, reqType, resType, context))
+                        {
+                            var behaviors = GetBehaviorsForHandler(type, reqType, resType, globalBehaviors, allBehaviors, context);
+                            var lifetime = GetLifetime(type);
+                            var validations = GetPropertyValidations(reqType);
+                            var handlerDef = new HandlerDefinition(type, reqType, resType, behaviors.ToArray(), lifetime, validations);
+
+                            var isQuery = reqType.AllInterfaces.Any(i =>
+                                i.ContainingNamespace.ToDisplayString() == "EricksonLopez.Mediator" && i.Name == "IQuery");
+
+                            if (isQuery)
+                            {
+                                queryHandlers.Add(handlerDef);
+                            }
+                            else
+                            {
+                                commandHandlers.Add(handlerDef);
+                            }
                         }
                     }
                     else if (iface.Name == "INotificationHandler" && iface.TypeArguments.Length == 1)

@@ -6,19 +6,21 @@
 - `IMediator`
 - `ICommand<out TResponse>`
 - `IQuery<out TResponse>`
-- `IStreamQuery<out TResponse>`
+- `IStreamRequest<out TResponse>`
 - `INotification`
 - `ICommandHandler<in TCommand, TResponse>`
 - `IQueryHandler<in TQuery, TResponse>`
-- `IStreamQueryHandler<in TQuery, out TResponse>`
+- `IStreamRequestHandler<in TRequest, out TResponse>`
 - `INotificationHandler<in TNotification>`
 - `IPipelineBehavior<TRequest, TResponse>`
 - `INotificationBehavior<TNotification>`
 - `INext<TResponse>`
 - `INext`
-- `IResultFactory<TResponse>`
 - `[UseBehaviorAttribute]`
 - `[UseGlobalBehaviorAttribute]`
 - `[ServiceLifetimeAttribute]`
 - `[PublishStrategyAttribute]`
 - `[DiscoverHandlersAttribute]`
+
+## 2. Result Namespace: `EricksonLopez.Mediator.Result`
+- `IResultFactory<TResponse>`

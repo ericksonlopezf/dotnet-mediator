@@ -24,7 +24,7 @@ public static class MediatorEndpointRouteBuilderExtensions
     /// <param name="endpoints">The route builder to map the endpoint into.</param>
     /// <param name="pattern">The URL route pattern.</param>
     /// <returns>A <see cref="RouteHandlerBuilder"/> that can be used to further customize the endpoint.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="endpoints"/> or <paramref name="pattern"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="endpoints"/> or <paramref name="pattern"/> is <see langword="null"/></exception>
     [RequiresUnreferencedCode("Minimal API route delegate binding uses reflection in ASP.NET Core.")]
     [UnconditionalSuppressMessage("Trimming", "IL2026:RequiresUnreferencedCode", Justification = "ASP.NET Core Minimal APIs route mapping delegation")]
     public static RouteHandlerBuilder MapCommand<TCommand, TResponse>(
@@ -44,7 +44,7 @@ public static class MediatorEndpointRouteBuilderExtensions
     /// <param name="pattern">The URL route pattern.</param>
     /// <param name="httpMethod">The HTTP method to map (for example, "POST", "PUT", "DELETE").</param>
     /// <returns>A <see cref="RouteHandlerBuilder"/> that can be used to further customize the endpoint.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="endpoints"/>, <paramref name="pattern"/>, or <paramref name="httpMethod"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="endpoints"/>, <paramref name="pattern"/>, or <paramref name="httpMethod"/> is <see langword="null"/></exception>
     [RequiresUnreferencedCode("Minimal API route delegate binding uses reflection in ASP.NET Core.")]
     [UnconditionalSuppressMessage("Trimming", "IL2026:RequiresUnreferencedCode", Justification = "ASP.NET Core Minimal APIs route mapping delegation")]
     public static RouteHandlerBuilder MapCommand<TCommand, TResponse>(
@@ -74,7 +74,7 @@ public static class MediatorEndpointRouteBuilderExtensions
     /// <param name="endpoints">The route builder to map the endpoint into.</param>
     /// <param name="pattern">The URL route pattern.</param>
     /// <returns>A <see cref="RouteHandlerBuilder"/> that can be used to further customize the endpoint.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="endpoints"/> or <paramref name="pattern"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="endpoints"/> or <paramref name="pattern"/> is <see langword="null"/></exception>
     [RequiresUnreferencedCode("Minimal API route delegate binding uses reflection in ASP.NET Core.")]
     [UnconditionalSuppressMessage("Trimming", "IL2026:RequiresUnreferencedCode", Justification = "ASP.NET Core Minimal APIs route mapping delegation")]
     public static RouteHandlerBuilder MapQuery<TQuery, TResponse>(

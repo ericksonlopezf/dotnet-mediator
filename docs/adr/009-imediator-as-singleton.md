@@ -1,6 +1,12 @@
 # ADR-009: IMediator as Singleton
 
-**Status**: Accepted
+## Status
+Superseded by [ADR-037](037-scoped-mediator-by-default.md)
+
+## Date
+2026-09-04
+
+**Status**: Superseded by [ADR-037](037-scoped-mediator-by-default.md)
 
 ### Decision
 `GeneratedMediator` (implementing `IMediator`) is registered as Singleton.
@@ -15,10 +21,3 @@
 + Zero DI resolution overhead for IMediator
 + Thread-safe by construction
 - Developer cannot have per-request state in the mediator (correct — use handlers instead)
-
----
-
-# PARTE B: ADRs DE FEATURES RECHAZADAS
-
----
-

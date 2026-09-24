@@ -16,6 +16,7 @@ public sealed record RegisterUserCommand(string Username, string Email) : IComma
 /// </summary>
 public sealed class RegisterUserCommandHandler : ICommandHandler<RegisterUserCommand, string>
 {
+    /// <inheritdoc/>
     public ValueTask<string> Handle(RegisterUserCommand command, CancellationToken cancellationToken)
     {
         Console.WriteLine($"[Level 1 - Handler] Processing registration for '{command.Username}' ({command.Email})");
@@ -25,10 +26,15 @@ public sealed class RegisterUserCommandHandler : ICommandHandler<RegisterUserCom
 }
 
 /// <summary>
-/// Level 1: Quickstart with Dependency Injection and Command Dispatching.
+/// Demonstrates quickstart usage with dependency injection and command dispatching.
 /// </summary>
 public static class Demo
 {
+    /// <summary>
+    /// Runs the quickstart demonstration.
+    /// </summary>
+    /// <param name="mediator">The mediator instance used for dispatching messages.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     public static async Task RunAsync(IMediator mediator)
     {
         Console.WriteLine("================================================================================");

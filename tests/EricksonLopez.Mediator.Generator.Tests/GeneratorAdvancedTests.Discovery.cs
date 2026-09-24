@@ -84,8 +84,49 @@ namespace MainApp
         dispatcherCode.Should().Contain("var handler = _serviceProvider.GetRequiredService<global::ExternalLibrary.OuterContainer.NestedExternalCommandHandler>();");
 
         var diCode = generatedSyntaxTrees.First(t => t.FilePath.Contains("GeneratedMediatorExtensions.g.cs")).ToString();
-        diCode.Should().Contain("services.AddTransient<global::ExternalLibrary.ExternalCommandHandler>();");
-        diCode.Should().Contain("services.AddTransient<global::ExternalLibrary.OuterContainer.NestedExternalCommandHandler>();");
+        diCode.Should().Contain("services.TryAddTransient<global::ExternalLibrary.ExternalCommandHandler>();");
+        diCode.Should().Contain("services.TryAddTransient<global::ExternalLibrary.OuterContainer.NestedExternalCommandHandler>();");
+    }
+
+    /// <summary>
+    /// Verifies that handlers implementing <see cref="IRequestHandler{TRequest, TResponse}"/> are discovered and registered.
+    /// </summary>
+    [Fact]
+    public void SourceGenerator_WhenHandlerImplementsIRequestHandler_DiscoversAndRegistersHandler()
+    {
+        string source = @"
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using EricksonLopez.Mediator;
+
+namespace TestApp
+{
+    public sealed record SampleRequest(string Value) : IRequest<string>;
+
+    public sealed class SampleRequestHandler : IRequestHandler<SampleRequest, string>
+    {
+        public ValueTask<string> Handle(SampleRequest request, CancellationToken cancellationToken)
+            => new(request.Value);
     }
 }
+";
+        var compilation = RoslynTestHelper.CreateCompilation(source, "TestApp");
+        var generator = new MediatorSourceGenerator();
+        var driver = CSharpGeneratorDriver.Create(generator);
+
+        driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
+
+        diagnostics.Should().BeEmpty();
+
+        var generatedSyntaxTrees = outputCompilation.SyntaxTrees.ToList();
+        var dispatcherCode = generatedSyntaxTrees.First(t => t.FilePath.Contains("GeneratedMediator.g.cs")).ToString();
+        dispatcherCode.Should().Contain("global::TestApp.SampleRequest req:");
+        dispatcherCode.Should().Contain("var handler = _serviceProvider.GetRequiredService<global::TestApp.SampleRequestHandler>();");
+
+        var diCode = generatedSyntaxTrees.First(t => t.FilePath.Contains("GeneratedMediatorExtensions.g.cs")).ToString();
+        diCode.Should().Contain("services.TryAddTransient<global::TestApp.SampleRequestHandler>();");
+    }
+}
+
 

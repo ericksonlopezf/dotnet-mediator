@@ -50,7 +50,7 @@ namespace TestApp
             .First(t => t.FilePath.Contains("GeneratedMediator.g.cs")).ToString();
 
         Assert.Contains("var b1 = _serviceProvider.GetRequiredService<global::TestApp.NotifBehavior2>();", dispatcherCode);
-        Assert.Contains("var next1 = new ChainedEventBehavior1Next(b1, handlerNext, n, cancellationToken);", dispatcherCode);
+        Assert.Contains("var next1 = new TestApp_ChainedEventBehavior1Next(b1, handlerNext, n, cancellationToken);", dispatcherCode);
         Assert.Contains("var b0 = _serviceProvider.GetRequiredService<global::TestApp.NotifBehavior1>();", dispatcherCode);
         Assert.Contains("await b0.Handle(n, next1, cancellationToken).ConfigureAwait(false);", dispatcherCode);
     }
@@ -116,7 +116,7 @@ namespace TestApp
         var diCode = outComp.SyntaxTrees
             .First(t => t.FilePath.Contains("GeneratedMediatorExtensions.g.cs")).ToString();
 
-        Assert.Contains("services.AddTransient<global::TestApp.OuterContainer.NestedCommandHandler>();", diCode);
+        Assert.Contains("services.TryAddTransient<global::TestApp.OuterContainer.NestedCommandHandler>();", diCode);
     }
 
     [Fact]
@@ -436,13 +436,13 @@ namespace TestApp
             .First(t => t.FilePath.Contains("GeneratedMediator.g.cs")).ToString();
 
         // Exact struct fields for request behaviors
-        Assert.Contains("private readonly MultiBehaviorCommandBehavior1Next _next;", dispatcherCode);
-        Assert.Contains("private readonly MultiBehaviorCommandBehavior2Next _next;", dispatcherCode);
-        Assert.Contains("private readonly MultiBehaviorCommandHandlerNext _next;", dispatcherCode);
+        Assert.Contains("private readonly TestApp_MultiBehaviorCommandBehavior1Next _next;", dispatcherCode);
+        Assert.Contains("private readonly TestApp_MultiBehaviorCommandBehavior2Next _next;", dispatcherCode);
+        Assert.Contains("private readonly TestApp_MultiBehaviorCommandHandlerNext _next;", dispatcherCode);
 
         // Exact struct fields for notification behaviors
-        Assert.Contains("private readonly MultiBehaviorEventBehavior1Next _next;", dispatcherCode);
-        Assert.Contains("private readonly MultiBehaviorEventNotificationNext _next;", dispatcherCode);
+        Assert.Contains("private readonly TestApp_MultiBehaviorEventBehavior1Next _next;", dispatcherCode);
+        Assert.Contains("private readonly TestApp_MultiBehaviorEventNotificationNext _next;", dispatcherCode);
     }
 }
 

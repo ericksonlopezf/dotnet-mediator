@@ -1,5 +1,11 @@
 # ADR-033: Deprecation of EricksonLopez.Mediator.Validation in Favor of EricksonLopez.Mediator.FluentValidation
 
+## Status
+Accepted
+
+## Date
+2026-08-26
+
 **Status**: Approved (Implemented in v1.0)
 
 **Date**: 2026-08-26

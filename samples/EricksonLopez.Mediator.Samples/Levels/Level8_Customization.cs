@@ -10,18 +10,22 @@ using EricksonLopez.Mediator;
 namespace Sample.Levels.Level8_Customization;
 
 /// <summary>
-/// Marker type utilized by <see cref="DiscoverHandlersAttribute"/>.
+/// Represents a marker type utilized by <see cref="DiscoverHandlersAttribute"/>.
 /// </summary>
 public static class MarkerAssemblyType { }
 
 // --- 1. Handler with Singleton Lifetime ---
+
+/// <summary>Represents a command to increment an in-memory counter.</summary>
 public sealed record IncrementCounterCommand() : ICommand<int>;
 
+/// <summary>Handles counter increments using a singleton service lifetime.</summary>
 [ServiceLifetime(HandlerLifetime.Singleton)]
 public sealed class StatefulCounterCommandHandler : ICommandHandler<IncrementCounterCommand, int>
 {
     private int _counter = 0;
 
+    /// <inheritdoc/>
     public ValueTask<int> Handle(IncrementCounterCommand command, CancellationToken cancellationToken)
     {
         _counter++;
@@ -31,13 +35,17 @@ public sealed class StatefulCounterCommandHandler : ICommandHandler<IncrementCou
 }
 
 // --- 2. Handler with Transient Lifetime (Default) ---
+
+/// <summary>Represents a command dispatched to transient worker handlers.</summary>
 public sealed record TransientWorkerCommand() : ICommand<Guid>;
 
+/// <summary>Handles execution of transient worker tasks, creating a new instance per dispatch.</summary>
 [ServiceLifetime(HandlerLifetime.Transient)]
 public sealed class TransientWorkerCommandHandler : ICommandHandler<TransientWorkerCommand, Guid>
 {
     private readonly Guid _instanceId = Guid.NewGuid();
 
+    /// <inheritdoc/>
     public ValueTask<Guid> Handle(TransientWorkerCommand command, CancellationToken cancellationToken)
     {
         Console.WriteLine($"[Level 8 - Transient Handler] Unique instance created: {_instanceId}");
@@ -46,10 +54,13 @@ public sealed class TransientWorkerCommandHandler : ICommandHandler<TransientWor
 }
 
 /// <summary>
-/// Level 8: Service Lifetime Customization (ServiceLifetime) and Assembly Discovery.
+/// Demonstrates handler service lifetime customization and compile-time assembly discovery.
 /// </summary>
 public static class Demo
 {
+    /// <summary>Executes the Level 8 customization demonstration.</summary>
+    /// <param name="mediator">The mediator instance to use for dispatching.</param>
+    /// <returns>A task representing the asynchronous demonstration operation.</returns>
     public static async Task RunAsync(IMediator mediator)
     {
         Console.WriteLine("================================================================================");
@@ -75,7 +86,9 @@ public static class Demo
         Console.WriteLine("   [ServiceLifetime(HandlerLifetime.Scoped)] on ScopedDbWorkCommandHandler");
         Console.WriteLine("   -> Use when the handler depends on scoped services (e.g., EF Core DbContext).");
         Console.WriteLine("   -> The DI container creates one instance per IServiceScope.CreateScope().");
-        using var scope = ((IServiceProvider)null!).CreateScopedMediatorScope();
+        // In production, acquire a scope via IServiceScopeFactory.CreateScope() from a real IServiceProvider.
+        // Here we illustrate the disposable scope pattern directly (documentation-only).
+        using var scope = new ScopedLifetimeScope();
         Console.WriteLine("   -> Scoped lifetime ensures safe usage in background services via IServiceScopeFactory.");
         Console.WriteLine();
 
@@ -107,10 +120,14 @@ internal static class ScopedMediatorScopeExtensions
 /// </summary>
 public sealed class ScopedLifetimeScope : IDisposable
 {
+    /// <summary>Releases the resources used by this scope instance.</summary>
     public void Dispose() { /* scope teardown */ }
 }
 
 // --- 3. Handler with Scoped Lifetime ---
+
+/// <summary>Represents a unit-of-work command executed within a scoped lifetime.</summary>
+/// <param name="WorkItemId">The unique identifier of the work item.</param>
 public sealed record ScopedDbWorkCommand(string WorkItemId) : ICommand<bool>;
 
 /// <summary>
@@ -123,6 +140,7 @@ public sealed class ScopedDbWorkCommandHandler : ICommandHandler<ScopedDbWorkCom
 {
     private readonly Guid _scopeId = Guid.NewGuid();
 
+    /// <inheritdoc/>
     public ValueTask<bool> Handle(ScopedDbWorkCommand command, CancellationToken cancellationToken)
     {
         Console.WriteLine($"[Level 8 - Scoped Handler] Scope instance: {_scopeId} | WorkItem: {command.WorkItemId}");

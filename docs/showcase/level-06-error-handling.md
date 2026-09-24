@@ -59,12 +59,12 @@ using EricksonLopez.Mediator.Result;
 using EricksonLopez.Result;
 using FluentValidation;
 
-public sealed class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+public sealed class ValidationPipelineBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
 {
     private readonly IValidator<TRequest>? _validator;
     private readonly IResultFactory<TResponse>? _resultFactory;
 
-    public ValidationBehavior(
+    public ValidationPipelineBehavior(
         IValidator<TRequest>? validator = null, 
         IResultFactory<TResponse>? resultFactory = null)
     {

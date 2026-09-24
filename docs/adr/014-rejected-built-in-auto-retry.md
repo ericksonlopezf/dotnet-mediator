@@ -1,5 +1,11 @@
 # ADR-014: REJECTED — Built-in Auto-Retry
 
+## Status
+Rejected
+
+## Date
+2026-09-04
+
 **Status**: Accepted (Rejection)
 
 ### Context

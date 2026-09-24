@@ -1,5 +1,11 @@
 # ADR-013: REJECTED — RequestHandlerDelegate<T> (Func-based Pipeline)
 
+## Status
+Rejected
+
+## Date
+2026-09-04
+
 **Status**: Accepted (Rejection)
 
 ### Context

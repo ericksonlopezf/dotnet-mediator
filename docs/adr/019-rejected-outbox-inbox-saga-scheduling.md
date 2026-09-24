@@ -1,5 +1,11 @@
 # ADR-019: REJECTED — Outbox, Inbox, Saga, Scheduling
 
+## Status
+Rejected
+
+## Date
+2026-09-04
+
 **Status**: Accepted (Rejection)
 
 ### Context

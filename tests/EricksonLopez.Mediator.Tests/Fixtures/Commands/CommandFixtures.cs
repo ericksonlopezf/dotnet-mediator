@@ -178,3 +178,63 @@ public class FiveBehaviorCommandHandler : ICommandHandler<FiveBehaviorCommand, i
 {
     public ValueTask<int> Handle(FiveBehaviorCommand command, CancellationToken cancellationToken) => new(0);
 }
+
+// ─── PIPE-001: Short-circuit behavior fixtures ────────────────────────────────
+// A behavior that does NOT call next.InvokeAsync() — short-circuits the pipeline.
+
+[UseBehavior(typeof(ShortCircuitBehavior))]
+public class ShortCircuitCommand : ICommand<string> { }
+
+public class ShortCircuitCommandHandler : ICommandHandler<ShortCircuitCommand, string>
+{
+    // This handler should NEVER be called when ShortCircuitBehavior is in the pipeline
+    public ValueTask<string> Handle(ShortCircuitCommand command, CancellationToken cancellationToken)
+        => new("HANDLER_REACHED"); // if returned, the behavior failed to short-circuit
+}
+
+/// <summary>
+/// PIPE-001: A behavior that short-circuits the pipeline by returning without calling next.
+/// </summary>
+public class ShortCircuitBehavior : IPipelineBehavior<ShortCircuitCommand, string>
+{
+    public ValueTask<string> Handle<TNext>(ShortCircuitCommand request, TNext next, CancellationToken cancellationToken)
+        where TNext : struct, INext<string>
+    {
+        // Intentionally NOT calling next.InvokeAsync() — this is the short-circuit
+        return new("SHORT_CIRCUIT");
+    }
+}
+
+// ─── PIPE-002: Double-invoke behavior fixtures ────────────────────────────────
+// A behavior that calls next.InvokeAsync() twice — handler executes twice.
+
+[UseBehavior(typeof(DoubleInvokeBehavior))]
+public class DoubleInvokeCommand : ICommand<int> { }
+
+public class DoubleInvokeCommandHandler : ICommandHandler<DoubleInvokeCommand, int>
+{
+    // Thread-safe invoke counter for the double-invoke test
+    private static int _invokeCount;
+    public static int InvokeCount => _invokeCount;
+    public static void Reset() => System.Threading.Interlocked.Exchange(ref _invokeCount, 0);
+
+    public ValueTask<int> Handle(DoubleInvokeCommand command, CancellationToken cancellationToken)
+    {
+        System.Threading.Interlocked.Increment(ref _invokeCount);
+        return new(_invokeCount);
+    }
+}
+
+/// <summary>
+/// PIPE-002: A behavior that calls next.InvokeAsync() twice — handler runs twice.
+/// This documents the contract that the pipeline does not protect against double-invocation.
+/// </summary>
+public class DoubleInvokeBehavior : IPipelineBehavior<DoubleInvokeCommand, int>
+{
+    public async ValueTask<int> Handle<TNext>(DoubleInvokeCommand request, TNext next, CancellationToken cancellationToken)
+        where TNext : struct, INext<int>
+    {
+        await next.InvokeAsync(); // first call
+        return await next.InvokeAsync(); // second call — both invoke the handler
+    }
+}

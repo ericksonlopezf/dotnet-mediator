@@ -9,7 +9,7 @@
     <Nullable>enable</Nullable>
     <IsPackable>true</IsPackable>
     <Description>In-memory FakeMediator and testing doubles for EricksonLopez.Mediator.</Description>
-    <PackageTags>$(CommonPackageTags);unit-testing;fake-mediator;test-doubles;mocking;in-memory;test-automation</PackageTags>
+    <PackageTags>$(CommonPackageTags);unit-testing;test-doubles;mocking;in-memory</PackageTags>
   </PropertyGroup>
 
 </Project>

@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <IsPackable>true</IsPackable>
     <Description>High-performance, zero-allocation, AOT-compatible mediator pattern implementation for .NET 10.</Description>
-    <PackageTags>$(CommonPackageTags);native-aot;zero-allocation;in-process-messaging;pipeline-behavior;domain-events;streaming;clean-architecture</PackageTags>
+    <PackageTags>$(CommonPackageTags);in-process-messaging;pipeline;domain-events;streaming;native-aot;zero-allocation</PackageTags>
     <GenerateSBOM>true</GenerateSBOM>
     <IsAotCompatible>true</IsAotCompatible>
     <EnableTrimAnalyzer>true</EnableTrimAnalyzer>

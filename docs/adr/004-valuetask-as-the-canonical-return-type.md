@@ -1,5 +1,11 @@
 # ADR-004: ValueTask as the Canonical Return Type
 
+## Status
+Accepted
+
+## Date
+2026-09-04
+
 **Status**: Accepted
 
 ### Context

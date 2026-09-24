@@ -1,5 +1,11 @@
 # ADR-025: Struct-Based Zero-Allocation Notification Behaviors via INext
 
+## Status
+Accepted
+
+## Date
+2026-09-04
+
 **Status**: Accepted (Implemented in v1.0)
 
 ### Context

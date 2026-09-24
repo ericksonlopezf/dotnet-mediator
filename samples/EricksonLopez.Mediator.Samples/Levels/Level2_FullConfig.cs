@@ -6,16 +6,19 @@ using System.Threading;
 using System.Threading.Tasks;
 using EricksonLopez.Mediator;
 
-// Assembly-level Global Behavior registration with explicit order priority
+// Assembly-level Global Behavior registration with explicit order priority.
+// order: controls execution position among all global behaviors — lower values execute FIRST (outermost).
+// Pipeline call order: order=0 wraps order=1 wraps order=2 … wraps the handler.
 [assembly: UseGlobalBehavior(typeof(Sample.Levels.Level2_FullConfig.GlobalPerformanceBehavior<,>), order: 1)]
 
 namespace Sample.Levels.Level2_FullConfig;
 
 /// <summary>
-/// High-performance Global Pipeline Behavior intercepting all requests.
+/// Provides global pipeline behavior intercepting all requests with high-performance execution.
 /// </summary>
 public sealed class GlobalPerformanceBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
 {
+    /// <inheritdoc/>
     public async ValueTask<TResponse> Handle<TNext>(TRequest request, TNext next, CancellationToken cancellationToken)
         where TNext : struct, INext<TResponse>
     {
@@ -40,10 +43,11 @@ public sealed class GlobalPerformanceBehavior<TRequest, TResponse> : IPipelineBe
 }
 
 /// <summary>
-/// Specific Pipeline Behavior applied to a targeted request.
+/// Provides specific audit pipeline behavior applied to targeted requests.
 /// </summary>
 public sealed class SpecificAuditBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
 {
+    /// <inheritdoc/>
     public async ValueTask<TResponse> Handle<TNext>(TRequest request, TNext next, CancellationToken cancellationToken)
         where TNext : struct, INext<TResponse>
     {
@@ -55,16 +59,17 @@ public sealed class SpecificAuditBehavior<TRequest, TResponse> : IPipelineBehavi
 }
 
 /// <summary>
-/// Command decorated with a specific pipeline behavior.
+/// Represents a payment command decorated with specific pipeline behavior.
 /// </summary>
 [UseBehavior(typeof(SpecificAuditBehavior<,>), order: 2)]
 public sealed record ProcessPaymentCommand(string AccountId, decimal Amount) : ICommand<bool>;
 
 /// <summary>
-/// Handler for <see cref="ProcessPaymentCommand"/>.
+/// Processes <see cref="ProcessPaymentCommand"/> execution.
 /// </summary>
 public sealed class ProcessPaymentCommandHandler : ICommandHandler<ProcessPaymentCommand, bool>
 {
+    /// <inheritdoc/>
     public ValueTask<bool> Handle(ProcessPaymentCommand command, CancellationToken cancellationToken)
     {
         Console.WriteLine($"[Level 2 - Handler] Processing payment of ${command.Amount} for account {command.AccountId}");
@@ -73,15 +78,16 @@ public sealed class ProcessPaymentCommandHandler : ICommandHandler<ProcessPaymen
 }
 
 /// <summary>
-/// Reactive asynchronous streaming request.
+/// Represents a reactive asynchronous streaming request.
 /// </summary>
 public sealed record NumberStreamQuery(int Count, int DelayMs) : IStreamRequest<int>;
 
 /// <summary>
-/// Streaming handler emitting sequential items using IAsyncEnumerable.
+/// Emits sequential order event items using an asynchronous stream.
 /// </summary>
 public sealed class NumberStreamQueryHandler : IStreamRequestHandler<NumberStreamQuery, int>
 {
+    /// <inheritdoc/>
     public async IAsyncEnumerable<int> Handle(
         NumberStreamQuery request,
         [EnumeratorCancellation] CancellationToken cancellationToken)
@@ -99,10 +105,15 @@ public sealed class NumberStreamQueryHandler : IStreamRequestHandler<NumberStrea
 }
 
 /// <summary>
-/// Level 2: Full Configuration of Pipelines, Behaviors, and Streaming.
+/// Demonstrates pipeline configurations, custom behaviors, and streaming handlers.
 /// </summary>
 public static class Demo
 {
+    /// <summary>
+    /// Runs the full configuration demonstration.
+    /// </summary>
+    /// <param name="mediator">The mediator instance used for dispatching messages.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     public static async Task RunAsync(IMediator mediator)
     {
         Console.WriteLine("================================================================================");
@@ -223,9 +234,10 @@ public sealed record RegisterAccountCommand(
     [property: ValidateRegex(".+@.+", "A valid email address is required.")]
     string Email) : ICommand<bool>;
 
-/// <summary>Handler for <see cref="RegisterAccountCommand"/>.</summary>
+/// <summary>Processes <see cref="RegisterAccountCommand"/> validation and registration.</summary>
 public sealed class RegisterAccountCommandHandler : ICommandHandler<RegisterAccountCommand, bool>
 {
+    /// <inheritdoc/>
     public ValueTask<bool> Handle(RegisterAccountCommand command, CancellationToken cancellationToken)
     {
         Console.WriteLine($"[Level 2 - Handler] Account registered: {command.Username} / {command.Email}");

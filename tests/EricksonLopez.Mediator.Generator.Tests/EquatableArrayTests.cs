@@ -237,4 +237,41 @@ public class EquatableArrayTests
         Assert.False(array1 == arrayNull1);
         Assert.True(array1 != arrayNull1);
     }
+
+    [Fact]
+    public void EquatableArray_WithSymbols_UsesSymbolEqualityComparer()
+    {
+        var comp = RoslynTestHelper.CreateCompilation("public class C1 {} public class C2 {}");
+        var sym1 = comp.GetTypeByMetadataName("C1")!;
+        var sym1Dup = comp.GetTypeByMetadataName("C1")!;
+        var sym2 = comp.GetTypeByMetadataName("C2")!;
+
+        var arr1 = new EquatableArray<Microsoft.CodeAnalysis.ISymbol>(new Microsoft.CodeAnalysis.ISymbol[] { sym1 });
+        var arr1Dup = new EquatableArray<Microsoft.CodeAnalysis.ISymbol>(new Microsoft.CodeAnalysis.ISymbol[] { sym1Dup });
+        var arr2 = new EquatableArray<Microsoft.CodeAnalysis.ISymbol>(new Microsoft.CodeAnalysis.ISymbol[] { sym2 });
+        var arrNull = new EquatableArray<Microsoft.CodeAnalysis.ISymbol>(new Microsoft.CodeAnalysis.ISymbol[] { null! });
+
+        Assert.True(arr1.Equals(arr1Dup));
+        Assert.True(arr1 == arr1Dup);
+        Assert.False(arr1 != arr1Dup);
+        Assert.Equal(arr1.GetHashCode(), arr1Dup.GetHashCode());
+
+        Assert.False(arr1.Equals(arr2));
+        Assert.False(arr1 == arr2);
+        Assert.True(arr1 != arr2);
+        Assert.NotEqual(arr1.GetHashCode(), arr2.GetHashCode());
+
+        Assert.NotEqual(0, arr1.GetHashCode());
+        Assert.Equal(17 * 31, arrNull.GetHashCode());
+    }
+
+    [Fact]
+    public void EquatableArray_GetHashCode_ItemNonNull_MultipliesHashCorrectly()
+    {
+        var arr = new EquatableArray<string>(new[] { "TestItem" });
+        var hash = arr.GetHashCode();
+        Assert.NotEqual(0, hash);
+        Assert.NotEqual(17, hash);
+        Assert.Equal(17 * 31 + "TestItem".GetHashCode(), hash);
+    }
 }

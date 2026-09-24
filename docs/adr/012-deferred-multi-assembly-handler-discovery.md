@@ -1,5 +1,11 @@
 # ADR-012: DEFERRED — Multi-Assembly Handler Discovery
 
+## Status
+Accepted
+
+## Date
+2026-09-04
+
 **Status**: Deferred to v1.x (Experimental)
 
 ### Context

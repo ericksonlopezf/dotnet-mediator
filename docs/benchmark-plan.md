@@ -19,5 +19,5 @@ The benchmark suite located in `benchmarks/EricksonLopez.Mediator.Benchmarks` me
 - Measures broadcast latency across 5 registered `INotificationHandler` subscribers.
 - Compares sequential vs parallel publish strategies.
 
-### Benchmark 04: Asynchronous Streaming Queries
-- Measures memory throughput while streaming 10,000 records via `IStreamQuery<T>`.
+### Benchmark 04: Asynchronous Streaming Requests
+- Measures memory throughput while streaming 10,000 records via `IStreamRequest<T>`.

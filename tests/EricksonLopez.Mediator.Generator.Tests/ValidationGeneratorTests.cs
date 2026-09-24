@@ -105,8 +105,8 @@ namespace TestValidationApp
         Assert.Contains("if (string.IsNullOrEmpty(req.NullableString)) throw new global::EricksonLopez.Mediator.MediatorValidationException(\"Custom string empty\");", generatedSource);
         Assert.Contains("if (req.DefaultGuid == global::Guid.Empty) throw new global::EricksonLopez.Mediator.MediatorValidationException(\"DefaultGuid must not be empty.\");", generatedSource);
         Assert.Contains("if (req.CustomGuid == global::Guid.Empty) throw new global::EricksonLopez.Mediator.MediatorValidationException(\"Custom guid empty\");", generatedSource);
-        Assert.Contains("if (req.DefaultItems == null || !global::Enumerable.Any(req.DefaultItems)) throw new global::EricksonLopez.Mediator.MediatorValidationException(\"DefaultItems must not be empty.\");", generatedSource);
-        Assert.Contains("if (req.CustomItems == null || !global::Enumerable.Any(req.CustomItems)) throw new global::EricksonLopez.Mediator.MediatorValidationException(\"Custom collection empty\");", generatedSource);
+        Assert.Contains("if (req.DefaultItems == null || !global::System.Linq.Enumerable.Any(req.DefaultItems)) throw new global::EricksonLopez.Mediator.MediatorValidationException(\"DefaultItems must not be empty.\");", generatedSource);
+        Assert.Contains("if (req.CustomItems == null || !global::System.Linq.Enumerable.Any(req.CustomItems)) throw new global::EricksonLopez.Mediator.MediatorValidationException(\"Custom collection empty\");", generatedSource);
     }
 
     [Fact]

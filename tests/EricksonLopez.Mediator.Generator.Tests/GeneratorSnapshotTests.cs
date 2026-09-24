@@ -63,7 +63,7 @@ namespace TestApp
         var diCode = generatedSyntaxTrees.First(t => t.FilePath.Contains("GeneratedMediatorExtensions.g.cs")).ToString();
 
         Assert.Contains("case global::TestApp.MyCommand req:", dispatcherCode);
-        Assert.Contains("services.AddTransient<global::TestApp.MyCommandHandler>();", diCode);
+        Assert.Contains("services.TryAddTransient<global::TestApp.MyCommandHandler>();", diCode);
     }
 
     /// <summary>
@@ -383,8 +383,8 @@ namespace TestApp
         Assert.Contains("global::TestApp.MyQueryHandler", dispatcherCode);
 
         // Handler struct (zero-allocation pipeline)
-        Assert.Contains("MyCommandHandlerNext", dispatcherCode);
-        Assert.Contains("MyQueryHandlerNext", dispatcherCode);
+        Assert.Contains("TestApp_MyCommandHandlerNext", dispatcherCode);
+        Assert.Contains("TestApp_MyQueryHandlerNext", dispatcherCode);
     }
 
     /// <summary>
@@ -432,7 +432,7 @@ namespace TestApp
         Assert.Contains("GeneratedMediator", diCode);
 
         // Handler registration with correct lifetime (Transient by default)
-        Assert.Contains("services.AddTransient<global::TestApp.MyCommandHandler>();", diCode);
+        Assert.Contains("services.TryAddTransient<global::TestApp.MyCommandHandler>();", diCode);
     }
 
     /// <summary>
@@ -479,7 +479,7 @@ namespace TestApp
         var dispatcherCode = trees.First(t => t.FilePath.Contains("GeneratedMediator.g.cs")).ToString();
 
         // Check struct pipeline nesting
-        Assert.Contains("MyOrderedCommandHandlerNext", dispatcherCode);
+        Assert.Contains("TestApp_MyOrderedCommandHandlerNext", dispatcherCode);
         Assert.Contains("global::TestApp.AuthBehavior", dispatcherCode);
         Assert.Contains("global::TestApp.LogBehavior", dispatcherCode);
     }

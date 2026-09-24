@@ -25,6 +25,7 @@ public sealed class RateLimitingBehavior<TRequest, TResponse> : IPipelineBehavio
     }
 
     /// <inheritdoc/>
+    /// <exception cref="RateLimitExceededException">The rate limit is exceeded and permit acquisition fails</exception>
     public async ValueTask<TResponse> Handle<TNext>(
         TRequest request,
         TNext next,

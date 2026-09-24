@@ -12,8 +12,9 @@ namespace EricksonLopez.Mediator.Generator;
 /// <summary>
 /// Generates compile-time dispatchers and dependency injection registrations for mediator handlers and behaviors.
 /// </summary>
+// FIX GEN-006: Added sealed — IIncrementalGenerator implementations are not designed for inheritance.
 [Generator]
-public class MediatorSourceGenerator : IIncrementalGenerator
+public sealed class MediatorSourceGenerator : IIncrementalGenerator
 {
     /// <inheritdoc/>
     public void Initialize(IncrementalGeneratorInitializationContext context)

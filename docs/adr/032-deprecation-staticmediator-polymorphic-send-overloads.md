@@ -1,5 +1,11 @@
 # ADR-032: Deprecation of Polymorphic Reflection Overloads in StaticMediator
 
+## Status
+Accepted
+
+## Date
+2026-08-26
+
 **Status**: Approved (Implemented in v1.0)
 
 **Date**: 2026-08-26

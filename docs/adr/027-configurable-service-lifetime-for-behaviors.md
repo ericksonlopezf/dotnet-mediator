@@ -1,5 +1,11 @@
 # ADR-027: Configurable [ServiceLifetime] on Pipeline Behaviors
 
+## Status
+Accepted
+
+## Date
+2026-09-04
+
 **Status**: Accepted (Implemented in v1.0)
 
 ### Context

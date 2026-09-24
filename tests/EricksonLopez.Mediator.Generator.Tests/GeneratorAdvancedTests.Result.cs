@@ -70,7 +70,7 @@ namespace TestApp
         var generatedSyntaxTrees = outputCompilation.SyntaxTrees.ToList();
         var diCode = generatedSyntaxTrees.First(t => t.FilePath.Contains("GeneratedMediatorExtensions.g.cs")).ToString();
 
-        Assert.Contains("services.AddSingleton<global::EricksonLopez.Mediator.Result.IResultFactory<global::EricksonLopez.Result.Result>, ResultFactory0>();", diCode);
+        Assert.Contains("services.TryAddSingleton<global::EricksonLopez.Mediator.Result.IResultFactory<global::EricksonLopez.Result.Result>, ResultFactory0>();", diCode);
         Assert.Contains("internal sealed class ResultFactory0 : global::EricksonLopez.Mediator.Result.IResultFactory<global::EricksonLopez.Result.Result>", diCode);
     }
 }

@@ -1,5 +1,11 @@
 # ADR-008: Sequential Notification Execution as Default
 
+## Status
+Accepted
+
+## Date
+2026-09-04
+
 **Status**: Accepted
 
 ### Context

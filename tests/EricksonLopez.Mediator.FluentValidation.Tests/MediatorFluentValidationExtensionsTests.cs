@@ -57,15 +57,45 @@ public sealed class MediatorFluentValidationExtensionsTests
     }
 
     [Fact]
-    public void AddMediatorFluentValidationValidator_NullServices_ThrowsArgumentNullException()
+    public void AddMediatorFluentValidation_RegistersBehavior()
     {
         // Arrange
-        IServiceCollection services = null!;
+        var services = new ServiceCollection();
 
         // Act
-        var act = () => services.AddMediatorFluentValidationValidator<TestFluentValidator, TestFluentRequest>();
+        services.AddMediatorFluentValidation();
+        using var sp = services.BuildServiceProvider();
 
         // Assert
+        var behavior = sp.GetService<ValidationPipelineBehavior<TestFluentRequest, string>>();
+        behavior.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void AddMediatorFluentValidationValidator_WhenGivenGenericTypes_RegistersValidatorAndBehavior_LegacyTest()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+
+        // Act — NOTE: Correct method name is AddMediatorFluentValidationValidator (not AddMediatorValidator)
+        // This test was previously broken due to wrong method name. Fixed in MEGA-AUDIT.
+        services.AddMediatorFluentValidationValidator<TestFluentValidator, TestFluentRequest>();
+        using var sp = services.BuildServiceProvider();
+
+        // Assert
+        var validator = sp.GetService<IValidator<TestFluentRequest>>();
+        validator.Should().NotBeNull();
+        validator.Should().BeOfType<TestFluentValidator>();
+
+        var behavior = sp.GetService<ValidationPipelineBehavior<TestFluentRequest, string>>();
+        behavior.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void AddMediatorFluentValidationValidator_NullServices_ThrowsArgumentNullException()
+    {
+        IServiceCollection services = null!;
+        var act = () => services.AddMediatorFluentValidationValidator<TestFluentValidator, TestFluentRequest>();
         act.Should().Throw<ArgumentNullException>().WithParameterName("services");
     }
 }

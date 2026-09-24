@@ -2,21 +2,21 @@
 
 - **Author**: Erickson Lopez
 - **Date**: 2026-08-26
-- **Status**: Implemented
+- **Status**: Implemented (Promoted to stable via ADR-034 as `IStreamRequest<TResponse>`)
 
 ## 1. Summary
-Provides first-class streaming query dispatch via `IStreamQuery<TResponse>` and `IStreamQueryHandler<TQuery, TResponse>`, yielding asynchronous response sequences without buffering complete datasets in memory.
+Provides first-class streaming request dispatch via `IStreamRequest<TResponse>` and `IStreamRequestHandler<TRequest, TResponse>`, yielding asynchronous response sequences without buffering complete datasets in memory.
 
 ## 2. Motivation
-Large queries (e.g., historical telemetry, database cursor feeds) require reactive streaming to minimize memory footprint and enable backpressure handling.
+Large queries and data feeds (e.g., historical telemetry, database cursor feeds) require reactive streaming to minimize memory footprint and enable backpressure handling.
 
 ## 3. Detailed Design
 ```csharp
-public interface IStreamQuery<out TResponse> { }
+public interface IStreamRequest<out TResponse> { }
 
-public interface IStreamQueryHandler<in TQuery, out TResponse>
-    where TQuery : IStreamQuery<TResponse>
+public interface IStreamRequestHandler<in TRequest, out TResponse>
+    where TRequest : IStreamRequest<TResponse>
 {
-    IAsyncEnumerable<TResponse> Handle(TQuery query, CancellationToken ct);
+    IAsyncEnumerable<TResponse> Handle(TRequest request, CancellationToken cancellationToken);
 }
 ```

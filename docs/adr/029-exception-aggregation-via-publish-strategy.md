@@ -1,5 +1,11 @@
 # ADR-029: Exception Aggregation via PublishStrategy.SequentialAggregateExceptions
 
+## Status
+Accepted
+
+## Date
+2026-09-04
+
 **Status**: Accepted (Implemented in v1.0)
 
 ### Context

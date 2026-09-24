@@ -24,8 +24,8 @@ In your .csproj, mark the Generator as an Analyzer:
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="EricksonLopez.Mediator" Version="1.0.0" />
-  <PackageReference Include="EricksonLopez.Mediator.Generator" Version="1.0.0"
+  <PackageReference Include="EricksonLopez.Mediator" Version="2.0.0" />
+  <PackageReference Include="EricksonLopez.Mediator.Generator" Version="2.0.0"
                     OutputItemType="Analyzer"
                     ReferenceOutputAssembly="false" />
 </ItemGroup>

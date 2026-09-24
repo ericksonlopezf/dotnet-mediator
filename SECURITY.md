@@ -4,10 +4,11 @@
 
 The following table lists the versions of `EricksonLopez.Mediator` and their support status based on the current Git tags and `.csproj` versions.
 
-| Version | Supported          | Notes                                              |
-| ------- | ------------------ | -------------------------------------------------- |
-| 1.0.x   | :white_check_mark: | Currently supported (`1.0.0-rc1`), targets .NET 8/9/10 |
-| < 1.0.x | :x:                | Unsupported |
+| Version | Supported          | Notes                                                              |
+| ------- | ------------------ | ------------------------------------------------------------------ |
+| 2.0.x   | :white_check_mark: | Currently supported (2.0.0 GA - 2026-09-24), targets .NET 8/9/10   |
+| 1.0.x   | :white_check_mark: | Currently supported (1.0.0 GA - 2026-08-26), targets .NET 8/9/10   |
+| < 1.0.x | :x:                | Unsupported                                                        |
 
 ## Reporting a Vulnerability
 
