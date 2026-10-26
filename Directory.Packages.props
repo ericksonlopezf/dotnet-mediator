@@ -9,7 +9,7 @@
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.12" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12" />
     <PackageVersion Include="Polly.Core" Version="8.8.0" />
-    <PackageVersion Include="OpenTelemetry.Api" Version="1.19.1" />
+    <PackageVersion Include="OpenTelemetry.Api" Version="1.20.1" />
     <PackageVersion Include="EricksonLopez.Result" Version="3.0.0" />
     <PackageVersion Include="EricksonLopez.Result.FluentValidation" Version="3.0.0" />
     <PackageVersion Include="EricksonLopez.Caching" Version="1.0.0" />
